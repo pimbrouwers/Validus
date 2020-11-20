@@ -5,7 +5,7 @@
     <Version>1.0.0</Version>
 
     <!-- General info -->
-    <Description>Functional validators for F#.</Description>
+    <Description>Functional input validation for F#.</Description>
     <Copyright>Copyright 2020 Pim Brouwers</Copyright>
     <Authors>Pim Brouwers</Authors>
     <NeutralLanguage>en-CA</NeutralLanguage>
