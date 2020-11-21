@@ -28,6 +28,7 @@ let ``Validation of record succeeds`` () =
         let nameValidator =             
             Validators.String.greaterThanLen 2 None 
             <+> Validators.String.lessThanLen 100 None 
+            <+> Validators.String.equals expected.Name None
 
         fun name age -> { 
             Name = name
