@@ -1,4 +1,4 @@
-module Validus.Tests
+﻿module Validus.ValidationResult.Tests
 
 open Xunit
 open Validus
@@ -7,24 +7,6 @@ open FsUnit.Xunit
 
 type FakeValidationRecord = { Name : string; Age : int }
 type FakeValidationRecordWithOption = { Name : string; Age : int option }
-
-[<Fact>]
-let ``ValidationError.merges produces Map<string, string list> from two source`` () =
-    let expected = [ "fakeField1", [ "fake error message 1" ]; "fakeField2", [ "fake error message 2" ] ] |> Map.ofList
-    let error = ValidationErrors.create "fakeField1" [ "fake error message 1" ]
-    let error2 = ValidationErrors.create "fakeField2" [ "fake error message 2" ]
-
-    ValidationErrors.merge error error2
-    |> should equal expected
-
-[<Fact>]
-let ``ValidationError.merges produces Map<string, string list> from two sources with same key`` () =
-    let expected = [ "fakeField1", ["fake error message 1"; "fake error message 2" ] ] |> Map.ofList
-    let error = ValidationErrors.create "fakeField1" [ "fake error message 1" ]
-    let error2 = ValidationErrors.create "fakeField1" [ "fake error message 2" ]
-
-    ValidationErrors.merge error error2
-    |> should equal expected
 
 [<Fact>]
 let ``ValidationResult.create produces Ok result`` () =    
@@ -100,3 +82,5 @@ let ``Validation of record fails`` () =
     result 
     |> ValidationResult.toResult
     |> Result.mapError (fun r -> (r.ContainsKey "Name", r.ContainsKey "Age") |> should equal (true, true))
+
+

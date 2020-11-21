@@ -24,7 +24,7 @@ module ValidationErrors =
         [ field, errors ] |> Map.ofList
 
     /// Combine two ValidationErrors instances
-    let merge (e1 : ValidationErrors) (e2 : ValidationErrors) = 
+    let merge (e1 : ValidationErrors) (e2 : ValidationErrors) : ValidationErrors = 
         Map.fold 
             (fun acc k v -> 
                 match Map.tryFind k acc with
@@ -124,7 +124,7 @@ module Validators =
 
         /// Validate string is between length (inclusive)
         member _.betweenLen (min : int) (max : int) (message : string option) : Validator<string> =
-            let defaultMessage () = sprintf "Value must be between %i and %i characters" min max
+            let defaultMessage () = sprintf "Value must be between %i and %i characters" min max            
             Validator.create (fun v -> v.Length >= min && v.Length <= max) (messageOrDefault message defaultMessage)
 
         /// Validate string is null or ""
@@ -140,7 +140,7 @@ module Validators =
         /// Validate string length is less than provided value
         member _.lessThanLen (max : int) (message : string option) : Validator<string> =
             let defaultMessage () = sprintf "Value must be at least %i characters" max
-            Validator.create (fun v -> v.Length > max) (messageOrDefault message defaultMessage)
+            Validator.create (fun v -> v.Length < max) (messageOrDefault message defaultMessage)
 
         /// Validate string is not null or ""
         member _.notEmpty (message : string option) : Validator<string> =
