@@ -26,7 +26,7 @@ type PersonInput =
             Age       : int
       }
 
-// Internal domain model for name's
+// Internal domain model for names
 type Name = { First : string; Last : string }
 
 // Internal person record, which has been validated
