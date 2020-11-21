@@ -37,6 +37,7 @@ type VerifiedPerson =
         Age   : int
   }
 
+// PersonInput -> ValidationResult<VerifiedPerson>
 let validatePerson input = 
     // Shared validator for first & last name
     let nameValidator = 
