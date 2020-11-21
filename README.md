@@ -14,12 +14,12 @@ Validus is a composable validation library for F#, with built-in validators for 
 
 ## Quick Start
 
-~Coming soon~
+_Coming soon_
 
 ## Built-in Validators
 
-~Coming soon~
+_Coming soon_
 
 ## Custom Validators
 
-~Coming soon~
+_Coming soon_
