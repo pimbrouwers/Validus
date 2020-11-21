@@ -28,18 +28,17 @@ let ``ValidationError.merges produces Map<string, string list> from two sources 
 
 [<Fact>]
 let ``ValidationResult.create produces Ok result`` () =    
-    ValidationResult.create true () ValidationErrors.empty
-    |> ValidationResult.toResult
-    |> Result.bind (fun result -> Ok (result |> should equal ()))
+    ValidationResult.create true () ValidationErrors.empty    
+    |> ValidationResult.map (fun result -> result |> should equal ())
 
 [<Fact>]
-let ``ValidationResult.create produces Error result`` () =
-    let errorMessage = "fake error message"
-    let error = ValidationErrors.create "fakeField" [ errorMessage ]
-    ValidationResult.create false () error
-    |> ValidationResult.toResult
-    |> Result.mapError (fun errors -> errors |> should equal error)
-
+let ``ValidationResult.create produces Error result`` () =    
+    let expected = ValidationErrors.create "fakeField" [ "fake error message" ]
+    
+    match ValidationResult.create false () expected with
+    | Success _ -> ()
+    | Failure e -> e |> should equal expected
+    
 [<Fact>]
 let ``Validation of record succeeds`` () =        
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }    
@@ -59,25 +58,28 @@ let ``Validation of record succeeds`` () =
     |> ValidationResult.toResult
     |> Result.bind (fun r -> Ok(r |> should equal expected))
 
-//[<Fact>]
-//let ``Validation of record with option succeeds`` () =        
-//    let expected : FakeValidationRecordWithOption = { Name = "John"; Age = None }
-//    let result : ValidationResult<FakeValidationRecordWithOption> = 
-//        let nameValidator = 
-//            Validators.String.greaterThanLen 2 None "Name" expected.Name
+[<Fact>]
+let ``Validation of record with option succeeds`` () =        
+    let expected : FakeValidationRecordWithOption = { Name = "John"; Age = None }
+    let result : ValidationResult<FakeValidationRecordWithOption> = 
+        let nameValidator = 
+            Validators.String.greaterThanLen 2 None "Name" expected.Name
 
-//        let ageValidator = 
-//            Validators.optional (Validators.Int.greaterThan 0 None) "Age" expected.Age
+        let ageValidator = 
+            Validators.optional 
+                (Validators.Int.greaterThan 0 None <+> Validators.Int.lessThan 100 None) 
+                "Age" 
+                expected.Age
 
-//        fun name age -> { 
-//            Name = name
-//            Age = age
-//        }
-//        <!> nameValidator
-//        <*> ageValidator
+        fun name age -> { 
+            Name = name
+            Age = age
+        }
+        <!> nameValidator
+        <*> ageValidator
     
-//    result 
-//    |> ValidationResult.bind (fun r -> Success(r |> should equal expected))
+    result 
+    |> ValidationResult.bind (fun r -> Success(r |> should equal expected))
 
 [<Fact>]
 let ``Validation of record fails`` () =       
