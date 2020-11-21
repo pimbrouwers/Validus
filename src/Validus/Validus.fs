@@ -96,8 +96,6 @@ module Validators =
         message |> Option.defaultValue (defaultMessage ())        
         
     type EqualityValidator<'a when 'a : equality>() =                         
-        let equal v equalTo = v = equalTo
-
         member _.equals (equalTo : 'a) (message : string option) : Validator<'a> =
             let defaultMessage () = sprintf "Value must be equal to %A" equalTo
             Validator.create (fun v -> v = equalTo) (messageOrDefault message defaultMessage)
