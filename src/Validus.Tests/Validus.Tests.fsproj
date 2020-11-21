@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="ComparisonValidatorTests.fs" />
     <Compile Include="ValidusTests.fs" />
     <Compile Include="EqualityValidatorTests.fs" />
     <Compile Include="Program.fs" />

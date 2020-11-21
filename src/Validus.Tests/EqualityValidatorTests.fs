@@ -9,7 +9,7 @@ let private TestValidator = Validators.EqualityValidator<int>()
 [<Property>]
 let ``(TestValidator.equals n) should produce Success`` (NonZeroInt n) =           
     match TestValidator.equals n None "Test" n with
-    | Success v -> v = n
+    | Success _ -> true
     | _ -> false
 
 [<Property>]
