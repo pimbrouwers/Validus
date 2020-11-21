@@ -8,6 +8,9 @@ type ValidationErrors = Map<string, string list>
 /// The ValidationResult type represents a choice between success and failure
 type ValidationResult<'a> = Success of 'a | Failure of ValidationErrors
 
+/// Given a value, return true/false to indicate validity
+type ValidationRule<'a> = 'a -> bool
+
 /// Given a field name and value, 'a, produces a ValidationResult<'a>
 type Validator<'a> = string -> 'a -> ValidationResult<'a>
 
@@ -82,17 +85,19 @@ module Validator =
                 (b field value)                  
 
     /// Create a new Validator
-    let create (predicate : 'a -> bool) (message : string) : Validator<'a> = 
+    let create (rule : ValidationRule<'a>) (message : string) : Validator<'a> = 
         fun (field : string) (value : 'a) ->
             let error = ValidationErrors.create field [message]
-            ValidationResult.create (predicate value) value error
-            
+            ValidationResult.create (rule value) value error
+        
 /// Validation functions for primitive types
 module Validators =
     let private messageOrDefault (message : string option) (defaultMessage : unit -> string) =        
         message |> Option.defaultValue (defaultMessage ())        
         
-    type EqualityValidator<'a when 'a : equality>() =                 
+    type EqualityValidator<'a when 'a : equality>() =                         
+        let equal v equalTo = v = equalTo
+
         member _.equals (equalTo : 'a) (message : string option) : Validator<'a> =
             let defaultMessage () = sprintf "Value must be equal to %A" equalTo
             Validator.create (fun v -> v = equalTo) (messageOrDefault message defaultMessage)
@@ -119,26 +124,32 @@ module Validators =
     type StringValidator() =
         inherit EqualityValidator<string>() 
 
+        /// Validate string is between length (inclusive)
         member _.betweenLen (min : int) (max : int) (message : string option) : Validator<string> =
             let defaultMessage () = sprintf "Value must be between %i and %i characters" min max
             Validator.create (fun v -> v.Length >= min && v.Length <= max) (messageOrDefault message defaultMessage)
 
+        /// Validate string is null or ""
         member _.empty (message : string option) : Validator<string> =
             let defaultMessage () = sprintf "Value must be empty"                 
             Validator.create (fun v -> String.IsNullOrWhiteSpace(v)) (messageOrDefault message defaultMessage)
 
-        member _.greaterThanLen (max : int) (message : string option) : Validator<string> =
-            let defaultMessage () = sprintf "Value must not execeed %i characters" max
-            Validator.create (fun v -> v.Length < max) (messageOrDefault message defaultMessage)
-
-        member _.lessThanLen (min : int) (message : string option) : Validator<string> =
-            let defaultMessage () = sprintf "Value must be at least %i characters" min
+        /// Validate string length is greater than provided value
+        member _.greaterThanLen (min : int) (message : string option) : Validator<string> =
+            let defaultMessage () = sprintf "Value must not execeed %i characters" min
             Validator.create (fun v -> v.Length > min) (messageOrDefault message defaultMessage)
+        
+        /// Validate string length is less than provided value
+        member _.lessThanLen (max : int) (message : string option) : Validator<string> =
+            let defaultMessage () = sprintf "Value must be at least %i characters" max
+            Validator.create (fun v -> v.Length > max) (messageOrDefault message defaultMessage)
 
+        /// Validate string is not null or ""
         member _.notEmpty (message : string option) : Validator<string> =
             let defaultMessage () = sprintf "Value must not be empty"                 
             Validator.create (fun v -> not(String.IsNullOrWhiteSpace(v))) (messageOrDefault message defaultMessage)
 
+        /// Validate string matches regular expression
         member _.pattern (pattern : string) (message : string option) : Validator<string> =
             let defaultMessage () = sprintf "Value must match pattern %s" pattern
             Validator.create (fun v -> Text.RegularExpressions.Regex.IsMatch(v, pattern)) (messageOrDefault message defaultMessage)
@@ -156,15 +167,32 @@ module Validators =
         | Some v -> validator field v
         | None   -> Failure (ValidationErrors.create field [(messageOrDefault message defaultMessage)])
              
-    let DateTime       = ComparisonValidator<DateTime>()
+    /// System.DateTime validators
+    let DateTime= ComparisonValidator<DateTime>()
+    
+    /// System.DateTimeOffset validators
     let DateTimeOffset = ComparisonValidator<DateTimeOffset>()
-    let Decimal        = ComparisonValidator<decimal>()
-    let Float          = ComparisonValidator<float>()
-    let Int            = ComparisonValidator<int>()    
-    let Int16          = ComparisonValidator<int16>()
-    let Int64          = ComparisonValidator<int64>()
-    let String         = StringValidator()
-    let TimeSpan       = ComparisonValidator<TimeSpan>()
+
+    /// Microsoft.FSharp.Core.decimal validators
+    let Decimal = ComparisonValidator<decimal>()
+
+    /// Microsoft.FSharp.Core.float  validators
+    let Float = ComparisonValidator<float>()
+
+    /// Microsoft.FSharp.Core.int32 validators
+    let Int = ComparisonValidator<int>()    
+
+    /// Microsoft.FSharp.Core.16 validators
+    let Int16 = ComparisonValidator<int16>()
+
+    /// Microsoft.FSharp.Core.int64 validators
+    let Int64 = ComparisonValidator<int64>()
+
+    /// Microsoft.FSharp.Core.string validators
+    let String = StringValidator()
+
+    /// System.TimeSpan validators
+    let TimeSpan = ComparisonValidator<TimeSpan>()
 
 /// Custom operators for ValidationResult
 module Operators =
