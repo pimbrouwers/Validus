@@ -83,5 +83,3 @@ let ``Validation of record fails`` () =
     result 
     |> ValidationResult.toResult
     |> Result.mapError (fun r -> (r.ContainsKey "Name", r.ContainsKey "Age") |> should equal (true, true))
-
-
