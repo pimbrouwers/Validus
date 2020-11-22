@@ -15,7 +15,8 @@ Validus is a composable validation library for F#, with built-in validators for 
 ## Quick Start
 
 ```f#
-open Validus 
+open Validus
+open Validus.Operators
 
 // Untrusted input
 type PersonInput = 
@@ -31,11 +32,17 @@ type Name = { First : string; Last : string }
 
 // Internal person record, which has been validated
 type VerifiedPerson = 
-  {
+    {
         Name  : Name
         Email : string
         Age   : int
-  }
+    }
+    static member Create first last email age =
+        {
+            Name  = { First = first; Last = last }
+            Email = email
+            Age   = age
+        }   
 
 // PersonInput -> ValidationResult<VerifiedPerson>
 let validatePerson input = 
@@ -50,11 +57,7 @@ let validatePerson input =
         <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (Some invalidEmailMessage) // Overriding default error message
 
     // Construct VerifiedPerson if all validators return Success
-    fun first last email age -> {
-        Name  = { First = first; Last = last }
-        Email = email
-        Age   = age
-    }   
+    VerifiedPerson.Create
     <!> nameValidator "First name" input.FirstName // <!> is alias for ValidationResult.map
     <*> nameValidator "Last name" input.LastName   // <*> is an alis for ValidationResult.apply
     <*> emailValidator "Email address" input.Email
@@ -63,8 +66,8 @@ let validatePerson input =
 
 ## Built-in Validators
 
-_Coming soon_
+_Docs coming soon_
 
 ## Custom Validators
 
-_Coming soon_
+_Docs coming soon_
