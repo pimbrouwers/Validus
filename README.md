@@ -14,7 +14,7 @@ Validus is a composable validation library for F#, with built-in validators for 
 
 ## Quick Start
 
-A common example of receiving input from an untrusted source (ex: user form submission), applying validation and produce a result based on success/failure.
+A common example of receiving input from an untrusted source (ex: user form submission), applying validation and producing a result based on success/failure.
 
 ```f#
 open Validus
