@@ -14,6 +14,8 @@ Validus is a composable validation library for F#, with built-in validators for 
 
 ## Quick Start
 
+A common example of receiving input from an untrusted source (ex: user form submission), applying validation and produce a result based on success/failure.
+
 ```f#
 open Validus
 open Validus.Operators
@@ -31,7 +33,7 @@ type PersonInput =
 type Name = { First : string; Last : string }
 
 // Internal person record, which has been validated
-type VerifiedPerson = 
+type Person = 
     {
         Name  : Name
         Email : string
@@ -44,8 +46,8 @@ type VerifiedPerson =
             Age   = age
         }   
 
-// PersonInput -> ValidationResult<VerifiedPerson>
-let validatePerson input = 
+// PersonInput -> ValidationResult<Person>
+let validatePersonInput input = 
     // Shared validator for first & last name
     let nameValidator = 
         Validators.String.betweenLen 3 64 None 
@@ -56,8 +58,8 @@ let validatePerson input =
         Validators.String.betweenLen 8 512 None 
         <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (Some invalidEmailMessage) // Overriding default error message
 
-    // Construct VerifiedPerson if all validators return Success
-    VerifiedPerson.Create
+    // Construct Person if all validators return Success
+    Person.Create
     <!> nameValidator "First name" input.FirstName // <!> is alias for ValidationResult.map
     <*> nameValidator "Last name" input.LastName   // <*> is an alis for ValidationResult.apply
     <*> emailValidator "Email address" input.Email
@@ -66,8 +68,77 @@ let validatePerson input =
 
 ## Built-in Validators
 
-_Docs coming soon_
+## [`equals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L99)
+
+Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+## [`notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
+
+Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+## [`between`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L110) (inclusive)
+
+Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+## [`greaterThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L114)
+
+Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+## [`lessThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L118)
+
+Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+## [`betweenLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L126)
+
+Applies to: `string`
+
+## [`greaterThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L136)
+
+Applies to: `string`
+
+## [`lessThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L141)
+
+Applies to: `string`
+
+## [`empty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L131)
+
+Applies to: `string`
+
+## [`notEmpty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L146)
+
+Applies to: `string`
+
+## [`pattern`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L151) (Regular Expressions)
+
+Applies to: `string`
 
 ## Custom Validators
 
-_Docs coming soon_
+Custom validators can be created by combining built-in validators together using `Validator.compose`, or the `<+>` infix operator, as well as creating bespoke validator's using `Validator.create`.
+
+```f#
+// Combining built-in validators
+let emailValidator = 
+    Validators.String.betweenLen 8 512 None
+    <+> Validators.String.pattern "[^@]+@[^\.]+\..+" None
+
+let email = "fake@test.com"
+let emailResult = emailValidator "Login email" email 
+
+// Creating a custom validator 
+let fooValidator =
+    let fooRule : ValidationRule<string> = fun v -> v = "foo"
+    let fooMessage = "You must provide a string that matches 'foo'"
+    Validator.create fooRule fooMessage
+
+let testString = "bar"
+let fooRule = fooValidator "Test string" testString
+```
+
+## Find a bug?
+
+There's an [issue](https://github.com/pimbrouwers/Validus/issues) for that.
+
+## License
+
+Built with ♥ by [Pim Brouwers](https://github.com/pimbrouwers) in Toronto, ON. Licensed under [Apache License 2.0](https://github.com/pimbrouwers/Validus/blob/master/LICENSE).
