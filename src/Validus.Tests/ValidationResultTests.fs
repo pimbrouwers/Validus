@@ -62,7 +62,8 @@ let ``Validation of record with option succeeds`` () =
         <*> ageValidator
     
     result 
-    |> ValidationResult.bind (fun r -> Success(r |> should equal expected))
+    |> ValidationResult.toResult
+    |> Result.bind (fun r -> Ok (r |> should equal expected))
 
 [<Fact>]
 let ``Validation of record fails`` () =       

@@ -35,6 +35,9 @@ module ValidationErrors =
 
 /// Functions for ValidationResult type
 module ValidationResult = 
+    /// Convert regular value 'a into ValidationResult<'a>
+    let retn (v : 'a) = Success v
+
     /// Unpack ValidationResult and feed into validation function
     let apply (resultFn : ValidationResult<'a -> 'b>) (result : ValidationResult<'a>) : ValidationResult<'b> =
         match resultFn, result with
@@ -43,31 +46,15 @@ module ValidationResult =
         | Success _, Failure e   -> Failure e
         | Failure e1, Failure e2 -> Failure (ValidationErrors.merge e1 e2)  
 
-    /// Unpack ValidationResult and apply inner value to function
-    let bind (fn : 'a -> ValidationResult<'b>) (result : ValidationResult<'a>) : ValidationResult<'b> =
-        match result with 
-        | Success x -> fn x
-        | Failure e -> Failure e
-
-    /// Combine two ValidationResult
-    let compose (a : ValidationResult<'a>) (b : ValidationResult<'a>) =
-        match a, b with
-        | Success a', Success _  -> Success a'
-        | Failure e, Success _   -> Failure e
-        | Success _, Failure e   -> Failure e
-        | Failure e1, Failure e2 -> Failure (ValidationErrors.merge e1 e2)  
-
     /// Create a ValidationResult<'a> based on condition, yield
     /// error message if condition evaluates false
-    let create condition value error : ValidationResult<'a> =
+    let create (condition : bool) (value : 'a) (error : ValidationErrors) : ValidationResult<'a> =
         if condition then Success value
         else error |> Failure
 
     /// Unpack ValidationResult, evaluate function if Success or return if Failure
     let map (fn : 'a -> 'b) (result : ValidationResult<'a>) : ValidationResult<'b> =
-        match result with 
-        | Success x -> fn x |> Success
-        | Failure e -> Failure e
+        apply (retn fn) result
 
     /// Transform ValidationResult<'a> to Result<'a, ValidationErrors>
     let toResult (result : ValidationResult<'a>) : Result<'a, ValidationErrors> =
@@ -78,11 +65,13 @@ module ValidationResult =
 /// Functions for Validator type
 module Validator =     
     /// Combine two Validators
-    let compose (a : Validator<'a>) (b : Validator<'a>) =
-        fun (field : string) (value : 'a) ->
-            ValidationResult.compose
-                (a field value)
-                (b field value)                  
+    let compose (a : Validator<'a>) (b : Validator<'a>) : Validator<'a> =
+        fun (field : string) (value : 'a) ->            
+            match a field value, b field value with
+            | Success a', Success _  -> Success a'
+            | Failure e, Success _   -> Failure e
+            | Success _, Failure e   -> Failure e
+            | Failure e1, Failure e2 -> Failure (ValidationErrors.merge e1 e2)                           
 
     /// Create a new Validator
     let create (rule : ValidationRule<'a>) (message : string) : Validator<'a> = 
