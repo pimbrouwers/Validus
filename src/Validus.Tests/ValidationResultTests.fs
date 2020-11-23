@@ -72,15 +72,17 @@ let ``Validation of record fails`` () =
     let result : ValidationResult<FakeValidationRecord> =         
         let nameValidator =             
             Validators.String.greaterThanLen 2 None
-            <+> Validators.String.lessThanLen 100 None 
+            <+> Validators.String.lessThanLen 100 None
 
         fun name age -> { 
             Name = name
             Age = age
         }
         <!> nameValidator "Name" name
-        <*> Validators.Int.greaterThan 3 None "Age" age
+        <*> Validators.Int.greaterThan 3 (Some (sprintf "%s must be greater than 3")) "Age" age
     
     result 
     |> ValidationResult.toResult
-    |> Result.mapError (fun r -> (r.ContainsKey "Name", r.ContainsKey "Age") |> should equal (true, true))
+    |> Result.mapError (fun r -> 
+        (r.ContainsKey "Name", r.ContainsKey "Age") |> should equal (true, true)
+        r.["Age"] |> should equal ["Age must be greater than 3"])
