@@ -84,5 +84,6 @@ let ``Validation of record fails`` () =
     result 
     |> ValidationResult.toResult
     |> Result.mapError (fun r -> 
-        (r.ContainsKey "Name", r.ContainsKey "Age") |> should equal (true, true)
-        r.["Age"] |> should equal ["Age must be greater than 3"])
+        let rMap = ValidationErrors.toMap r
+        (rMap.ContainsKey "Name", rMap.ContainsKey "Age") |> should equal (true, true)
+        rMap.["Age"] |> should equal ["Age must be greater than 3"])

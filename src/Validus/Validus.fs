@@ -3,7 +3,7 @@
 open System
 
 /// A mapping of fields and errors
-type ValidationErrors = Map<string, string list>
+type ValidationErrors = private ValidationErrors of Map<string, string list>
 
 /// The ValidationResult type represents a choice between success and failure
 type ValidationResult<'a> = Success of 'a | Failure of ValidationErrors
@@ -20,21 +20,37 @@ type Validator<'a> = string -> 'a -> ValidationResult<'a>
 /// Functions for ValidationErrors type
 module ValidationErrors =
     /// Empty ValidationErrors, alias for Map.empty<string, string list>
-    let empty : ValidationErrors = Map.empty<string, string list>
+    let empty : ValidationErrors = Map.empty<string, string list> |> ValidationErrors
 
     /// Create a new ValidationErrors instance from a field  and errors list
     let create (field : string) (errors : string list) : ValidationErrors =   
-        [ field, errors ] |> Map.ofList
+        [ field, errors ] |> Map.ofList |> ValidationErrors
 
     /// Combine two ValidationErrors instances
     let merge (e1 : ValidationErrors) (e2 : ValidationErrors) : ValidationErrors = 
+        let (ValidationErrors e1') = e1
+        let (ValidationErrors e2') = e2
         Map.fold 
             (fun acc k v -> 
                 match Map.tryFind k acc with
                 | Some v' -> Map.add k (v' @ v) acc
                 | None    -> Map.add k v acc)
-            e1
-            e2
+            e1'
+            e2'
+        |> ValidationErrors
+
+    /// Unwrap ValidationErrors into a standard Map<string, string list>
+    let toMap (e : ValidationErrors) : Map<string, string list> =
+        let (ValidationErrors e') = e
+        e'
+
+    /// Unwrap ValidationErrors and collection individual errors into
+    /// string list, excluding keys
+    let toList (e : ValidationErrors) : string list =
+        e 
+        |> toMap
+        |> Seq.collect (fun kvp -> kvp.Value)
+        |> List.ofSeq
 
 /// Functions for ValidationResult type
 module ValidationResult = 
