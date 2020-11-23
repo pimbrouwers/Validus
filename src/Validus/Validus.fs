@@ -155,7 +155,7 @@ module Validators =
         | None   -> Failure (ValidationErrors.create field [(messageOrDefault message defaultMessage)])
              
     /// System.DateTime validators
-    let DateTime= ComparisonValidator<DateTime>()
+    let DateTime = ComparisonValidator<DateTime>()
     
     /// System.DateTimeOffset validators
     let DateTimeOffset = ComparisonValidator<DateTimeOffset>()
