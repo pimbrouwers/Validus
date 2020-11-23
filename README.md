@@ -30,7 +30,16 @@ type PersonInput =
       }
 
 // Internal domain model for names
-type Name = { First : string; Last : string }
+type Name = 
+  { 
+    First : string
+    Last : string 
+  }
+  static member Create first last = 
+    { 
+      First = first
+      Last = last
+    }
 
 // Internal person record, which has been validated
 type Person = 
@@ -41,7 +50,7 @@ type Person =
     }
     static member Create first last email age =
         {
-            Name  = { First = first; Last = last }
+            Name  = Name.create first last
             Email = email
             Age   = age
         }   
