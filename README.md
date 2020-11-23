@@ -54,9 +54,8 @@ let validatePersonInput input =
 
     // Composing multiple validators to form complex validation rules    
     let emailValidator = 
-        let invalidEmailMessage = "Please provide a valid email address"
         Validators.String.betweenLen 8 512 None 
-        <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (Some invalidEmailMessage) // Overriding default error message
+        <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (Some (sprintf "Please provide a valid %s")) // Overriding default error message
 
     // Construct Person if all validators return Success
     Person.Create
@@ -128,11 +127,12 @@ let emailResult = emailValidator "Login email" email
 // Creating a custom validator 
 let fooValidator =
     let fooRule : ValidationRule<string> = fun v -> v = "foo"
-    let fooMessage = "You must provide a string that matches 'foo'"
+    let fooMessage = sprintf "%s must be a string that matches 'foo'"
     Validator.create fooRule fooMessage
 
 let testString = "bar"
-let fooRule = fooValidator "Test string" testString
+
+fooValidator "Test string" testString // Outputs: "Test string must be a string that matches 'foo'"
 ```
 
 ## Find a bug?
