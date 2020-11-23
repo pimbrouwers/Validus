@@ -31,15 +31,15 @@ type PersonInput =
 
 // Internal domain model for names
 type Name = 
-  { 
-    First : string
-    Last : string 
-  }
-  static member Create first last = 
     { 
-      First = first
-      Last = last
+        First : string
+        Last : string 
     }
+    static member Create first last = 
+      { 
+          First = first
+          Last = last
+      }
 
 // Internal person record, which has been validated
 type Person = 
