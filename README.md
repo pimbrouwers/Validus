@@ -22,38 +22,30 @@ open Validus.Operators
 
 // Untrusted input
 type PersonInput = 
-      {
-            FirstName : string
-            LastName  : string
-            Email     : string
-            Age       : int
-      }
+      { FirstName : string
+        LastName  : string
+        Email     : string
+        Age       : int}
 
 // Internal domain model for names
 type Name = 
-    { 
-        First : string
-        Last : string 
-    }
+    { First : string
+      Last : string }
+
     static member Create first last = 
-      { 
-          First = first
-          Last = last
-      }
+      { First = first
+        Last = last }
 
 // Internal person record, which has been validated
 type Person = 
-    {
-        Name  : Name
-        Email : string
-        Age   : int
-    }
+    { Name  : Name
+      Email : string
+      Age   : int }
+
     static member Create first last email age =
-        {
-            Name  = Name.create first last
-            Email = email
-            Age   = age
-        }   
+        { Name  = Name.create first last
+          Email = email
+          Age   = age }   
 
 // PersonInput -> ValidationResult<Person>
 let validatePersonInput input = 
@@ -69,7 +61,7 @@ let validatePersonInput input =
     // Construct Person if all validators return Success
     Person.Create
     <!> nameValidator "First name" input.FirstName // <!> is alias for ValidationResult.map
-    <*> nameValidator "Last name" input.LastName   // <*> is an alis for ValidationResult.apply
+    <*> nameValidator "Last name" input.LastName   // <*> is an alias for ValidationResult.apply
     <*> emailValidator "Email address" input.Email
     <*> Validators.Int.between 1 100 None "Age" input.Age
 ```
@@ -79,6 +71,10 @@ let validatePersonInput input =
 ## [`equals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L99)
 
 Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+```fsharp
+
+```
 
 ## [`notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
 
@@ -139,9 +135,8 @@ let fooValidator =
     let fooMessage = sprintf "%s must be a string that matches 'foo'"
     Validator.create fooRule fooMessage
 
-let testString = "bar"
-
-fooValidator "Test string" testString // Outputs: "Test string must be a string that matches 'foo'"
+"bar"
+|> fooValidator "Test string" // Outputs: "Test string must be a string that matches 'foo'"
 ```
 
 ## Find a bug?

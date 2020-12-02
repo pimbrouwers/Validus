@@ -93,69 +93,127 @@ module Validator =
             | Failure e1, Failure e2 -> Failure (ValidationErrors.merge e1 e2)                           
 
     /// Create a new Validator
-    let create (rule : ValidationRule<'a>) (message : ValidationMessage) : Validator<'a> = 
+    let create (message : ValidationMessage) (rule : ValidationRule<'a>) : Validator<'a> = 
         fun (field : string) (value : 'a) ->
             let error = ValidationErrors.create field [ message field ]
             ValidationResult.create (rule value) value error
         
-/// Validation functions for primitive types
-module Validators =
-    type EqualityValidator<'a when 'a : equality>() =                                 
-        member _.equals (equalTo : 'a) (message : ValidationMessage option) : Validator<'a> =
-            let defaultMessage = fun field -> sprintf "%s must be equal to %A" field equalTo
-            Validator.create (fun v -> v = equalTo) (message |> Option.defaultValue defaultMessage)
+module ValidationRule =
+    let equality<'a when 'a : equality> (equalTo : 'a) : ValidationRule<'a> = 
+        fun v -> v = equalTo
+    
+    let inequality<'a when 'a : equality> (notEqualTo : 'a) : ValidationRule<'a>= 
+        fun v -> not(v = notEqualTo)
 
-        member _.notEquals (notEqualTo : 'a) (message : ValidationMessage option) : Validator<'a> =            
+    let between<'a when 'a : comparison> (min : 'a) (max : 'a) : ValidationRule<'a> = 
+        fun v -> v >= min && v <= max            
+
+    let greaterThan<'a when 'a : comparison> (min : 'a) : ValidationRule<'a> = 
+        fun v -> v > min
+
+    let lessThan<'a when 'a : comparison> (max : 'a) : ValidationRule<'a> = 
+        fun v -> v < max
+
+    let betweenLen (min : int) (max : int) : ValidationRule<string> =
+        fun str -> str.Length |> between min max
+
+    let greaterThanLen (min : int) : ValidationRule<string> =
+        fun str -> str.Length |> greaterThan min
+
+    let lessThanLen (max : int) : ValidationRule<string> =
+        fun str -> str.Length |> lessThan max
+
+    let empty : ValidationRule<string> =
+        fun str -> String.IsNullOrWhiteSpace(str)
+
+    let notEmpty : ValidationRule<string> =
+        fun str -> not(empty str)
+
+    let pattern (pattern : string) : ValidationRule<string> =
+        fun v -> Text.RegularExpressions.Regex.IsMatch(v, pattern)
+
+/// Validation functions for primitive types
+module Validators = 
+
+    type EqualityValidator<'a when 'a : equality>() =                                 
+        member _.equals (equalTo : 'a) (message : ValidationMessage option): Validator<'a> =            
+            let defaultMessage = fun field -> sprintf "%s must be equal to %A" field equalTo
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.equality equalTo
+            Validator.create msg rule
+
+        member _.notEquals (notEqualTo : 'a) (message : ValidationMessage option): Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must not equal %A" field notEqualTo
-            Validator.create (fun v -> v <> notEqualTo) (message |> Option.defaultValue defaultMessage)    
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.inequality notEqualTo
+            Validator.create msg rule    
 
     type ComparisonValidator<'a when 'a : comparison>() = 
         inherit EqualityValidator<'a>()
 
-        member _.between (min : 'a) (max : 'a) (message : ValidationMessage option) : Validator<'a> =            
+        member _.between (minAndMax : 'a * 'a) (message : ValidationMessage option): Validator<'a> =            
+            let min, max = minAndMax
             let defaultMessage = fun field -> sprintf "%s must be between %A and %A" field min max
-            Validator.create (fun v -> v >= min && v <= max) (message |> Option.defaultValue defaultMessage)
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.between min max
+            Validator.create msg rule
                 
-        member _.greaterThan (min : 'a) (message : ValidationMessage option) : Validator<'a> =            
+        member _.greaterThan (min : 'a) (message : ValidationMessage option): Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must be greater than or equal to %A" field min
-            Validator.create (fun v -> v > min) (message |> Option.defaultValue defaultMessage)
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.greaterThan min
+            Validator.create msg rule
 
-        member _.lessThan (max : 'a) (message : ValidationMessage option) : Validator<'a> =            
+        member _.lessThan (max : 'a) (message : ValidationMessage option): Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must be less than or equal to %A" field min
-            Validator.create (fun v -> v < max) (message |> Option.defaultValue defaultMessage)
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.lessThan max
+            Validator.create msg rule
 
     type StringValidator() =
         inherit EqualityValidator<string>() 
 
         /// Validate string is between length (inclusive)
-        member _.betweenLen (min : int) (max : int) (message : ValidationMessage option) : Validator<string> =
+        member _.betweenLen (minAndMax : int * int) (message : ValidationMessage option): Validator<string> =
+            let min, max = minAndMax
             let defaultMessage = fun field -> sprintf "%s must be between %i and %i characters" field min max            
-            Validator.create (fun v -> v.Length >= min && v.Length <= max) (message |> Option.defaultValue defaultMessage)
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.betweenLen min max
+            Validator.create msg rule
 
         /// Validate string is null or ""
-        member _.empty (message : ValidationMessage option) : Validator<string> =
+        member _.empty (message : ValidationMessage option): Validator<string> =
             let defaultMessage = fun field -> sprintf "%s must be empty" field
-            Validator.create (fun v -> String.IsNullOrWhiteSpace(v)) (message |> Option.defaultValue defaultMessage)
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.notEmpty 
+            Validator.create msg ValidationRule.empty
 
         /// Validate string length is greater than provided value
-        member _.greaterThanLen (min : int) (message : ValidationMessage option) : Validator<string> =
+        member _.greaterThanLen (min : int) (message : ValidationMessage option): Validator<string> =
             let defaultMessage = fun field -> sprintf "%s must not execeed %i characters" field min
-            Validator.create (fun v -> v.Length > min) (message |> Option.defaultValue defaultMessage)
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.greaterThanLen min
+            Validator.create msg rule
         
         /// Validate string length is less than provided value
-        member _.lessThanLen (max : int) (message : ValidationMessage option) : Validator<string> =
+        member _.lessThanLen (max : int) (message : ValidationMessage option): Validator<string> =
             let defaultMessage = fun field -> sprintf "%s must be at least %i characters" field max
-            Validator.create (fun v -> v.Length < max) (message |> Option.defaultValue defaultMessage)
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.lessThanLen max
+            Validator.create msg rule
 
         /// Validate string is not null or ""
-        member _.notEmpty (message : ValidationMessage option) : Validator<string> =
+        member _.notEmpty (message : ValidationMessage option): Validator<string> =
             let defaultMessage = fun field -> sprintf "%s must not be empty" field
-            Validator.create (fun v -> not(String.IsNullOrWhiteSpace(v))) (message |> Option.defaultValue defaultMessage)
+            let msg = message |> Option.defaultValue defaultMessage
+            Validator.create msg ValidationRule.notEmpty
 
         /// Validate string matches regular expression
-        member _.pattern (pattern : string) (message : ValidationMessage option) : Validator<string> =
+        member _.pattern (pattern : string) (message : ValidationMessage option): Validator<string> =
             let defaultMessage = fun field -> sprintf "%s must match pattern %s" field pattern
-            Validator.create (fun v -> Text.RegularExpressions.Regex.IsMatch(v, pattern)) (message |> Option.defaultValue defaultMessage)
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.pattern pattern
+            Validator.create msg rule
 
     /// Execute validator if 'a is Some, otherwise return Success 'a
     let optional (validator : Validator<'a>) (field : string) (value : 'a option): ValidationResult<'a option> =  
@@ -168,7 +226,7 @@ module Validators =
         let defaultMessage = fun field -> sprintf "%s is required" field
         match value with
         | Some v -> validator field v
-        | None   -> Failure (ValidationErrors.create field [ (message |> Option.defaultValue defaultMessage) field ])
+        | None   -> Failure (ValidationErrors.create field [ (message |> Option.defaultValue defaultMessage) field ])           
              
     /// System.DateTime validators
     let DateTime = ComparisonValidator<DateTime>()

@@ -5,8 +5,17 @@ open Validus
 open Validus.Operators
 open FsUnit.Xunit
 
-type FakeValidationRecord = { Name : string; Age : int }
-type FakeValidationRecordWithOption = { Name : string; Age : int option }
+type FakeValidationRecord = 
+    { Name : string; Age : int }
+
+    static member Create name age = 
+        { Name = name; Age = age }
+
+type FakeValidationRecordWithOption = 
+    { Name : string; Age : int option }
+    
+    static member Create name age = 
+        { Name = name; Age = age }
 
 [<Fact>]
 let ``ValidationResult.create produces Ok result`` () =    
@@ -26,14 +35,11 @@ let ``Validation of record succeeds`` () =
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }    
     let result : ValidationResult<FakeValidationRecord> = 
         let nameValidator =             
-            Validators.String.greaterThanLen 2 None 
-            <+> Validators.String.lessThanLen 100 None 
+            Validators.String.greaterThanLen 2 None
+            <+> Validators.String.lessThanLen 100 None
             <+> Validators.String.equals expected.Name None
 
-        fun name age -> { 
-            Name = name
-            Age = age
-        }
+        FakeValidationRecord.Create
         <!> nameValidator "Name" expected.Name       
         <*> Validators.Int.greaterThan 0 None "Age" 1
     
