@@ -95,7 +95,7 @@ let equalsFoo =
 equalsFoo "bar" // ValidationResult<string>
 ```
 
-## `notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
+## [`notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
 
 Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan
 
@@ -112,37 +112,120 @@ equalsFoo "bar" // ValidationResult<string>
 
 Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
 
+```fsharp
+// Define a validator which checks if an int is between
+// 1 and 100 (inclusive) displaying the standard error message.
+let between1and100 = 
+  Validators.Int.between 1 100 None "field"
+
+between1and100 12 // ValidationResult<int>
+```
+
 ## [`greaterThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L114)
 
 Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+```fsharp
+// Define a validator which checks if an int is greater than
+// 100 displaying the standard error message.
+let greaterThan100 = 
+  Validators.Int.greaterThan 100 None "field"
+
+greaterThan100 12 // ValidationResult<int>
+```
 
 ## [`lessThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L118)
 
 Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
 
+```fsharp
+// Define a validator which checks if an int is less than
+// 100 displaying the standard error message.
+let lessThan100 = 
+  Validators.Int.lessThan 100 None "field"
+
+lessThan100 12 // ValidationResult<int>
+```
+
+### String specific validators
+
 ## [`betweenLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L126)
 
 Applies to: `string`
+
+```fsharp
+// Define a validator which checks if a string is between
+// 1 and 100 chars displaying the standard error message.
+let between1and100Chars = 
+  Validators.String.betweenLen 1 100 None "field"
+
+between1and100Chars "validus" // ValidationResult<string>
+```
 
 ## [`greaterThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L136)
 
 Applies to: `string`
 
+```fsharp
+// Define a validator which checks if a string is greater tha
+// 100 chars displaying the standard error message.
+let greaterThan100Chars = 
+  Validators.String.greaterThanLen 100 None "field"
+
+greaterThan100Chars "validus" // ValidationResult<string>
+```
+
 ## [`lessThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L141)
 
 Applies to: `string`
+
+```fsharp
+// Define a validator which checks if a string is less tha
+// 100 chars displaying the standard error message.
+let lessThan100Chars = 
+  Validators.String.lessThanLen 100 None "field"
+
+lessThan100Chars "validus" // ValidationResult<string>
+```
 
 ## [`empty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L131)
 
 Applies to: `string`
 
+```fsharp
+// Define a validator which checks if a string is empty
+// displaying the standard error message.
+let stringIsEmpty = 
+  Validators.String.empty None "field"
+
+stringIsEmpty "validus" // ValidationResult<string>
+```
+
 ## [`notEmpty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L146)
 
 Applies to: `string`
 
+```fsharp
+// Define a validator which checks if a string is not empty
+// displaying the standard error message.
+let stringIsNotEmpty = 
+  Validators.String.notEmpty None "field"
+
+stringIsNotEmpty "validus" // ValidationResult<string>
+```
+
 ## [`pattern`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L151) (Regular Expressions)
 
 Applies to: `string`
+
+```fsharp
+// Define a validator which checks if a string matches the 
+// provided regex displaying the standard error message.
+let stringIsChars = 
+  Validators.String.pattern "[a-z]" None "field"
+
+stringIsChars "validus" // ValidationResult<string>
+```
 
 ## Custom Validators
 
