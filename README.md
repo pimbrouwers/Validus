@@ -76,9 +76,16 @@ Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset
 
 ```
 
-## [`notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
+## `notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
 
-Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan
+
+```fsharp
+let equalsFoo = 
+  Validators.String.equals "foo" None "field"
+
+equalsFoo "bar" // ValidationResult<string>
+```
 
 ## [`between`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L110) (inclusive)
 

@@ -151,13 +151,13 @@ module Validators =
     type ComparisonValidator<'a when 'a : comparison>() = 
         inherit EqualityValidator<'a>()
 
-        member _.between (minAndMax : 'a * 'a) (message : ValidationMessage option): Validator<'a> =            
-            let min, max = minAndMax
+        member _.between (min : 'a) (max : 'a) (message : ValidationMessage option): Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must be between %A and %A" field min max
             let msg = message |> Option.defaultValue defaultMessage
             let rule = ValidationRule.between min max
             Validator.create msg rule
                 
+        /// Detemine if a value is greater than the provided minimum        
         member _.greaterThan (min : 'a) (message : ValidationMessage option): Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must be greater than or equal to %A" field min
             let msg = message |> Option.defaultValue defaultMessage
@@ -174,8 +174,7 @@ module Validators =
         inherit EqualityValidator<string>() 
 
         /// Validate string is between length (inclusive)
-        member _.betweenLen (minAndMax : int * int) (message : ValidationMessage option): Validator<string> =
-            let min, max = minAndMax
+        member _.betweenLen (min : int) (max : int) (message : ValidationMessage option): Validator<string> =
             let defaultMessage = fun field -> sprintf "%s must be between %i and %i characters" field min max            
             let msg = message |> Option.defaultValue defaultMessage
             let rule = ValidationRule.betweenLen min max
@@ -185,7 +184,6 @@ module Validators =
         member _.empty (message : ValidationMessage option): Validator<string> =
             let defaultMessage = fun field -> sprintf "%s must be empty" field
             let msg = message |> Option.defaultValue defaultMessage
-            let rule = ValidationRule.notEmpty 
             Validator.create msg ValidationRule.empty
 
         /// Validate string length is greater than provided value

@@ -7,18 +7,18 @@ open Validus
 let private TestValidator = Validators.ComparisonValidator<int>()
 
 [<Property>]
-let ``(TestValidator.between (min, max)) should produce Success`` (NonZeroInt min) =           
+let ``(TestValidator.between min max) should produce Success`` (NonZeroInt min) =           
     let max = min + 100000
     let v = min + 50000
-    match TestValidator.between (min, max) None "Test" v with
+    match TestValidator.between min max None "Test" v with
     | Success _ -> true
     | _ -> false
 
 [<Property>]
-let ``(TestValidator.between (min, max)) should produce Failure`` (NonZeroInt min) =           
+let ``(TestValidator.between min max) should produce Failure`` (NonZeroInt min) =           
     let max = min + 100000
     let v = min + 150000
-    match TestValidator.between (min, max) None "Test" v with
+    match TestValidator.between min max None "Test" v with
     | Success _ -> false
     | _ -> true
 
