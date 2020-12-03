@@ -132,9 +132,8 @@ module ValidationRule =
     let pattern (pattern : string) : ValidationRule<string> =
         fun v -> Text.RegularExpressions.Regex.IsMatch(v, pattern)
 
-/// Validation functions for primitive types
+/// Validation functions for prim itive types
 module Validators = 
-
     type EqualityValidator<'a when 'a : equality>() =                                 
         member _.equals (equalTo : 'a) (message : ValidationMessage option): Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must be equal to %A" field equalTo

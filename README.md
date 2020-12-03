@@ -68,12 +68,31 @@ let validatePersonInput input =
 
 ## Built-in Validators
 
+All of the built-in validators reside in the `Validators` module and follow a similar definition.
+
+```fsharp
+// Produce a validation message based on a field name
+type ValidationMessage = string -> string
+
+// Produce a validation result based on a field name and result
+type Validator<'a> = string -> 'a -> ValidationResult<'a>
+
+// Given 'a value, and optional validtion message produce 
+// a ready to use validator for 'a
+'a -> ValidationMessage option -> Validator<'a>
+```
+
 ## [`equals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L99)
 
 Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
 
 ```fsharp
+// Define a validator which checks if a string equals
+// "foo" displaying the standard error message.
+let equalsFoo = 
+  Validators.String.equals "foo" None "field"
 
+equalsFoo "bar" // ValidationResult<string>
 ```
 
 ## `notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
@@ -81,7 +100,9 @@ Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset
 Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan
 
 ```fsharp
-let equalsFoo = 
+// Define a validator which checks if a string is not 
+// equal to "foo" displaying the standard error message.
+let notEqualsFoo = 
   Validators.String.equals "foo" None "field"
 
 equalsFoo "bar" // ValidationResult<string>
