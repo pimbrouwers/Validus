@@ -8,14 +8,14 @@ let private TestValidator = Validators.StringValidator()
 let private testString = "validus"
 
 [<Property>]
-let ``(TestValidator.betweenLen (min, max)) should produce Success`` () =               
-    match TestValidator.betweenLen (0, 100) None "Test" testString with
+let ``(TestValidator.betweenLen min max) should produce Success`` () =               
+    match TestValidator.betweenLen 0 100 None "Test" testString with
     | Success _ -> true
     | Failure _ -> false
 
 [<Property>]
-let ``(TestValidator.betweenLen (min, max)) should produce Failure`` () =           
-    match TestValidator.betweenLen (100, 1000) None "Test" testString with
+let ``(TestValidator.betweenLen min max) should produce Failure`` () =           
+    match TestValidator.betweenLen 100 1000 None "Test" testString with
     | Success _ -> false
     | Failure _ -> true
 

@@ -72,7 +72,7 @@ let ``Validation of record with option succeeds`` () =
     |> Result.bind (fun r -> Ok (r |> should equal expected))
 
 [<Fact>]
-let ``Validation of record fails`` () =       
+let ``Validation of record fails`` () =           
     let name = "Jo"
     let age = 3
     let result : ValidationResult<FakeValidationRecord> =         

@@ -25,7 +25,7 @@ type PersonInput =
       { FirstName : string
         LastName  : string
         Email     : string
-        Age       : int}
+        Age       : int option }
 
 // Internal domain model for names
 type Name = 
@@ -40,7 +40,7 @@ type Name =
 type Person = 
     { Name  : Name
       Email : string
-      Age   : int }
+      Age   : int option }
 
     static member Create first last email age =
         { Name  = Name.create first last
@@ -58,12 +58,45 @@ let validatePersonInput input =
         Validators.String.betweenLen 8 512 None 
         <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (Some (sprintf "Please provide a valid %s")) // Overriding default error message
 
+    // Defining a validator for an optional value, then composing
+    // multiple validators to form complex validation rule
+    let ageValidator = 
+        Validators.optional 
+            (Validators.Int.greaterThan 0 None <+> Validators.Int.lessThan 100 None) 
+            "Age" 
+            expected.Age
+
     // Construct Person if all validators return Success
     Person.Create
     <!> nameValidator "First name" input.FirstName // <!> is alias for ValidationResult.map
     <*> nameValidator "Last name" input.LastName   // <*> is an alias for ValidationResult.apply
     <*> emailValidator "Email address" input.Email
     <*> Validators.Int.between 1 100 None "Age" input.Age
+
+// Successful execution
+let validPersonInput : PersonInput = 
+    // ...
+
+let person : ValidationResult<Person> = 
+    validatePerson validPersonInput
+
+match person with 
+| Success p -> printfn "%A" p
+| Failure e -> // ...
+
+// Unsuccessful execution
+let invalidPersonInput : PersonInput = 
+    // ...
+
+let person : ValidationResult<Person> = 
+    validatePerson invalidPersonInput // ValidationResult<Person>
+
+match person with 
+| Success p -> // ...
+| Failure e -> 
+    e 
+    |> ValidationErrors.toList
+    |> Seq.iter (printfn "%s")  
 ```
 
 ## Built-in Validators
@@ -244,10 +277,11 @@ let emailResult = emailValidator "Login email" email
 let fooValidator =
     let fooRule : ValidationRule<string> = fun v -> v = "foo"
     let fooMessage = sprintf "%s must be a string that matches 'foo'"
-    Validator.create fooRule fooMessage
+    Validator.create fooMessage fooRule
 
 "bar"
-|> fooValidator "Test string" // Outputs: "Test string must be a string that matches 'foo'"
+|> fooValidator "Test string" 
+// Outputs: [ "Test string", [ "Test string must be a string that matches 'foo'" ] ]
 ```
 
 ## Find a bug?
