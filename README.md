@@ -138,7 +138,7 @@ Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset
 let notEqualsFoo = 
   Validators.String.equals "foo" None "field"
 
-equalsFoo "bar" // ValidationResult<string>
+notEqualsFoo "bar" // ValidationResult<string>
 ```
 
 ## [`between`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L110) (inclusive)
