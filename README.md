@@ -43,7 +43,7 @@ type Person =
       Age   : int option }
 
     static member Create first last email age =
-        { Name  = Name.create first last
+        { Name  = Name.Create first last
           Email = email
           Age   = age }   
 
@@ -61,17 +61,17 @@ let validatePersonInput input =
     // Defining a validator for an optional value, then composing
     // multiple validators to form complex validation rule
     let ageValidator = 
-        Validators.optional 
-            (Validators.Int.greaterThan 0 None <+> Validators.Int.lessThan 100 None) 
-            "Age" 
-            expected.Age
+        Validators.optional
+            (Validators.Int.greaterThan 1 None <+> Validators.Int.lessThan 100 None)
+            // or
+            // Validators.Int.between 1 100 None
 
     // Construct Person if all validators return Success
     Person.Create
     <!> nameValidator "First name" input.FirstName // <!> is alias for ValidationResult.map
     <*> nameValidator "Last name" input.LastName   // <*> is an alias for ValidationResult.apply
     <*> emailValidator "Email address" input.Email
-    <*> Validators.Int.between 1 100 None "Age" input.Age
+    <*> ageValidator "Age" input.Age
 
 // Successful execution
 let validPersonInput : PersonInput = 

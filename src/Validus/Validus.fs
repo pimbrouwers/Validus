@@ -164,7 +164,7 @@ module Validators =
             Validator.create msg rule
 
         member _.lessThan (max : 'a) (message : ValidationMessage option) : Validator<'a> =            
-            let defaultMessage = fun field -> sprintf "%s must be less than or equal to %A" field min
+            let defaultMessage = fun field -> sprintf "%s must be less than or equal to %A" field max
             let msg = message |> Option.defaultValue defaultMessage
             let rule = ValidationRule.lessThan max
             Validator.create msg rule
