@@ -63,11 +63,11 @@ let validatePersonInput (input : PersonInput) =
         Validators.Default.String.betweenLen 8 512
         <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (Some (sprintf "Please provide a valid %s")) 
 
-    // Defining a validator for an optional value
+    // Defining a validator for an value option
     let ageValidator = 
         Validators.optional (Validators.Default.Int.between 1 100)
 
-    // Defining a validator for an optional required value
+    // Defining a validator for an required value option
     let dateValidator = 
         Validators.Default.required (Validators.Default.DateTime.greaterThan DateTime.Now)
 
@@ -88,7 +88,7 @@ let validPersonInput : PersonInput =
         LastName  = "Doe"
         Email     = "john.doe@url.com"
         Age       = Some 63
-        StartDate = new DateTime(2058, 1, 1)
+        StartDate = Some (new DateTime(2058, 1, 1))
     }
 
 match validatePerson validPersonInput with 
@@ -104,7 +104,7 @@ let invalidPersonInput : PersonInput =
         LastName  = "Do"
         Email     = "invalid_email"
         Age       = Some 63
-        StartDate = new DateTime(1958, 1, 1)
+        StartDate = Some (new DateTime(1958, 1, 1))
     }
 
 match validatePerson invalidPersonInput with 
