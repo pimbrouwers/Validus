@@ -35,13 +35,13 @@ let ``Validation of record succeeds`` () =
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }    
     let result : ValidationResult<FakeValidationRecord> = 
         let nameValidator =             
-            Validators.String.greaterThanLenDefault 2
-            <+> Validators.String.lessThanLenDefault 100
-            <+> Validators.String.equalsDefault expected.Name
+            Validators.Default.String.greaterThanLen 2
+            <+> Validators.Default.String.lessThanLen 100
+            <+> Validators.Default.String.equals expected.Name
 
         FakeValidationRecord.Create
         <!> nameValidator "Name" expected.Name       
-        <*> Validators.Int.greaterThanDefault 0 "Age" 1
+        <*> Validators.Default.Int.greaterThan 0 "Age" 1
     
     result 
     |> ValidationResult.toResult
@@ -52,11 +52,11 @@ let ``Validation of record with option succeeds`` () =
     let expected : FakeValidationRecordWithOption = { Name = "John"; Age = None }
     let result : ValidationResult<FakeValidationRecordWithOption> = 
         let nameValidator = 
-            Validators.String.greaterThanLenDefault 2 "Name" expected.Name
+            Validators.Default.String.greaterThanLen 2 "Name" expected.Name
 
         let ageValidator = 
             Validators.optional 
-                (Validators.Int.greaterThanDefault 0 <+> Validators.Int.lessThanDefault 100) 
+                (Validators.Default.Int.greaterThan 0 <+> Validators.Default.Int.lessThan 100) 
                 "Age" 
                 expected.Age
 
@@ -74,8 +74,8 @@ let ``Validation of record fails`` () =
     let age = 3
     let result : ValidationResult<FakeValidationRecord> =         
         let nameValidator =             
-            Validators.String.greaterThanLenDefault 2
-            <+> Validators.String.lessThanLenDefault 100
+            Validators.Default.String.greaterThanLen 2
+            <+> Validators.Default.String.lessThanLen 100
 
         FakeValidationRecord.Create
         <!> nameValidator "Name" name

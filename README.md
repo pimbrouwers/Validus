@@ -14,57 +14,62 @@ Validus is a composable validation library for F#, with built-in validators for 
 
 ## Quick Start
 
-A common example of receiving input from an untrusted source (ex: user form submission), applying validation and producing a result based on success/failure.
+A common example of receiving input from an untrusted source `PersonInput` (ex: user form submission), applying validation and producing a result based on success/failure.
 
 ```f#
 open Validus
 open Validus.Operators
 
-// Untrusted input
 type PersonInput = 
-      { FirstName : string
+    { 
+        FirstName : string
         LastName  : string
         Email     : string
-        Age       : int option }
+        Age       : int option
+        StartDate : DateTime option
+    }
 
-// Internal domain model for names
 type Name = 
-    { First : string
-      Last : string }
+    { 
+        First : string
+        Last : string 
+    }
 
-    static member Create first last = 
-      { First = first
-        Last = last }
-
-// Internal person record, which has been validated
 type Person = 
-    { Name  : Name
-      Email : string
-      Age   : int option }
+    { 
+        Name      : Name
+        Email     : string
+        Age       : int option 
+        StartDate : DateTime
+    }
 
-    static member Create first last email age =
-        { Name  = Name.Create first last
-          Email = email
-          Age   = age }   
+    static member Create first last email age startDate =
+        { 
+            Name      = { First = first; Last = last }
+            Email     = email
+            Age       = age 
+            StartDate = startDate
+        }   
 
-// PersonInput -> ValidationResult<Person>
-let validatePersonInput input = 
+let validatePersonInput (input : PersonInput) = 
     // Shared validator for first & last name
     let nameValidator = 
-        Validators.String.betweenLen 3 64 None 
+        Validators.Default.String.betweenLen 3 64
 
-    // Composing multiple validators to form complex validation rules    
+    // Composing multiple validators to form complex validation rules,
+    // overriding default error message (Note: "Validators.String" as 
+    // opposed to "Validators.Default.String")
     let emailValidator = 
-        Validators.String.betweenLen 8 512 None 
-        <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (Some (sprintf "Please provide a valid %s")) // Overriding default error message
+        Validators.Default.String.betweenLen 8 512
+        <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (Some (sprintf "Please provide a valid %s")) 
 
-    // Defining a validator for an optional value, then composing
-    // multiple validators to form complex validation rule
+    // Defining a validator for an optional value
     let ageValidator = 
-        Validators.optional
-            (Validators.Int.greaterThan 1 None <+> Validators.Int.lessThan 100 None)
-            // or
-            // Validators.Int.between 1 100 None
+        Validators.optional (Validators.Default.Int.between 1 100)
+
+    // Defining a validator for an optional required value
+    let dateValidator = 
+        Validators.Default.required (Validators.Default.DateTime.greaterThan DateTime.Now)
 
     // Construct Person if all validators return Success
     Person.Create
@@ -72,26 +77,37 @@ let validatePersonInput input =
     <*> nameValidator "Last name" input.LastName   // <*> is an alias for ValidationResult.apply
     <*> emailValidator "Email address" input.Email
     <*> ageValidator "Age" input.Age
+    <*> dateValidator "Start Date" input.StartDate
 
+//
 // Successful execution
+//
 let validPersonInput : PersonInput = 
-    // ...
+    { 
+        FirstName = "John"
+        LastName  = "Doe"
+        Email     = "john.doe@url.com"
+        Age       = Some 63
+        StartDate = new DateTime(2058, 1, 1)
+    }
 
-let person : ValidationResult<Person> = 
-    validatePerson validPersonInput
-
-match person with 
+match validatePerson validPersonInput with 
 | Success p -> printfn "%A" p
 | Failure e -> // ...
 
+//
 // Unsuccessful execution
+//
 let invalidPersonInput : PersonInput = 
-    // ...
+    { 
+        FirstName = "Jo"
+        LastName  = "Do"
+        Email     = "invalid_email"
+        Age       = Some 63
+        StartDate = new DateTime(1958, 1, 1)
+    }
 
-let person : ValidationResult<Person> = 
-    validatePerson invalidPersonInput // ValidationResult<Person>
-
-match person with 
+match validatePerson invalidPersonInput with 
 | Success p -> // ...
 | Failure e -> 
     e 
@@ -114,6 +130,8 @@ type Validator<'a> = string -> 'a -> ValidationResult<'a>
 // a ready to use validator for 'a
 'a -> ValidationMessage option -> Validator<'a>
 ```
+
+> Note: Validators pre-populated with the default error messages reside within the `Validators.Default` module.
 
 ## [`equals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L99)
 
@@ -267,8 +285,8 @@ Custom validators can be created by combining built-in validators together using
 ```f#
 // Combining built-in validators
 let emailValidator = 
-    Validators.String.betweenLen 8 512 None
-    <+> Validators.String.pattern "[^@]+@[^\.]+\..+" None
+    Validators.Default.String.betweenLen 8 512
+    <+> Validators.Default.String.pattern "[^@]+@[^\.]+\..+"
 
 let email = "fake@test.com"
 let emailResult = emailValidator "Login email" email 
