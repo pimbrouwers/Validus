@@ -35,13 +35,13 @@ let ``Validation of record succeeds`` () =
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }    
     let result : ValidationResult<FakeValidationRecord> = 
         let nameValidator =             
-            Validators.String.greaterThanLen 2 None
-            <+> Validators.String.lessThanLen 100 None
-            <+> Validators.String.equals expected.Name None
+            Validators.String.greaterThanLenDefault 2
+            <+> Validators.String.lessThanLenDefault 100
+            <+> Validators.String.equalsDefault expected.Name
 
         FakeValidationRecord.Create
         <!> nameValidator "Name" expected.Name       
-        <*> Validators.Int.greaterThan 0 None "Age" 1
+        <*> Validators.Int.greaterThanDefault 0 "Age" 1
     
     result 
     |> ValidationResult.toResult
@@ -52,18 +52,15 @@ let ``Validation of record with option succeeds`` () =
     let expected : FakeValidationRecordWithOption = { Name = "John"; Age = None }
     let result : ValidationResult<FakeValidationRecordWithOption> = 
         let nameValidator = 
-            Validators.String.greaterThanLen 2 None "Name" expected.Name
+            Validators.String.greaterThanLenDefault 2 "Name" expected.Name
 
         let ageValidator = 
             Validators.optional 
-                (Validators.Int.greaterThan 0 None <+> Validators.Int.lessThan 100 None) 
+                (Validators.Int.greaterThanDefault 0 <+> Validators.Int.lessThanDefault 100) 
                 "Age" 
                 expected.Age
 
-        fun name age -> { 
-            Name = name
-            Age = age
-        }
+        FakeValidationRecordWithOption.Create
         <!> nameValidator
         <*> ageValidator
     
@@ -77,13 +74,10 @@ let ``Validation of record fails`` () =
     let age = 3
     let result : ValidationResult<FakeValidationRecord> =         
         let nameValidator =             
-            Validators.String.greaterThanLen 2 None
-            <+> Validators.String.lessThanLen 100 None
+            Validators.String.greaterThanLenDefault 2
+            <+> Validators.String.lessThanLenDefault 100
 
-        fun name age -> { 
-            Name = name
-            Age = age
-        }
+        FakeValidationRecord.Create
         <!> nameValidator "Name" name
         <*> Validators.Int.greaterThan 3 (Some (sprintf "%s must be greater than 3")) "Age" age
     
