@@ -135,7 +135,7 @@ equalsFoo "bar" // ValidationResult<string>
 
 ## [`notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
 
-Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan
+Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
 
 ```fsharp
 // Define a validator which checks if a string is not 
