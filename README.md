@@ -72,17 +72,20 @@ let validatePersonInput (input : PersonInput) =
         Validators.Default.required (Validators.Default.DateTime.greaterThan DateTime.Now)
 
     // Construct Person if all validators return Success
-    Person.Create
-    <!> nameValidator "First name" input.FirstName // <!> is alias for ValidationResult.map
-    <*> nameValidator "Last name" input.LastName   // <*> is an alias for ValidationResult.apply
-    <*> emailValidator "Email address" input.Email
-    <*> ageValidator "Age" input.Age
-    <*> dateValidator "Start Date" input.StartDate
+    validate {
+      let! first = nameValidator "First name" input.FirstName
+      and! last = nameValidator "Last name" input.LastName
+      and! email = emailValidator "Email address" input.Email
+      and! age = ageValidator "Age" input.Age
+      and! startDate = dateValidator "Start Date" input.StartDate
+
+      return Person.Create first last email age startDate
+    }
 
 //
-// Successful execution
+// Execution
 //
-let validPersonInput : PersonInput = 
+let input : PersonInput = 
     { 
         FirstName = "John"
         LastName  = "Doe"
@@ -91,28 +94,12 @@ let validPersonInput : PersonInput =
         StartDate = Some (new DateTime(2058, 1, 1))
     }
 
-match validatePerson validPersonInput with 
+match validatePerson input with 
 | Success p -> printfn "%A" p
-| Failure e -> // ...
-
-//
-// Unsuccessful execution
-//
-let invalidPersonInput : PersonInput = 
-    { 
-        FirstName = "Jo"
-        LastName  = "Do"
-        Email     = "invalid_email"
-        Age       = Some 63
-        StartDate = Some (new DateTime(1958, 1, 1))
-    }
-
-match validatePerson invalidPersonInput with 
-| Success p -> // ...
 | Failure e -> 
     e 
     |> ValidationErrors.toList
-    |> Seq.iter (printfn "%s")  
+    |> Seq.iter (printfn "%s") 
 ```
 
 ## Built-in Validators

@@ -31,7 +31,7 @@ let ``ValidationResult.create produces Error result`` () =
     | Failure e -> e |> should equal expected
     
 [<Fact>]
-let ``Validation of record succeeds`` () =        
+let ``Validation of record succeeds using computation expression`` () =        
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }    
     let result : ValidationResult<FakeValidationRecord> = 
         let nameValidator =             
@@ -39,9 +39,11 @@ let ``Validation of record succeeds`` () =
             <+> Validators.Default.String.lessThanLen 100
             <+> Validators.Default.String.equals expected.Name
 
-        FakeValidationRecord.Create
-        <!> nameValidator "Name" expected.Name       
-        <*> Validators.Default.Int.greaterThan 0 "Age" 1
+        validate {
+            let! name = nameValidator "Name" expected.Name
+            and! age = Validators.Default.Int.greaterThan 0 "Age" 1
+            return FakeValidationRecord.Create name age
+        }
     
     result 
     |> ValidationResult.toResult

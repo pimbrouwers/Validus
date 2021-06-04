@@ -81,13 +81,21 @@ module ValidationResult =
         | Success r -> Ok r
         | Failure e -> Error e
 
+    /// Create a tuple form ValidationResult, if two ValidationResult objects are 
+    /// in Success state, otherwise return failure
+    let zip (r1 : ValidationResult<'a>) (r2 : ValidationResult<'b>) : ValidationResult<'a * 'b> =
+        match r1, r2 with
+        | Success x1res, Success x2res -> Success (x1res, x2res)
+        | Failure e, _                 -> Failure e
+        | _, Failure e                 -> Failure e
+
 /// Functions for Validator type
 module Validator =     
     /// Combine two Validators
-    let compose (a : Validator<'a>) (b : Validator<'a>) : Validator<'a> =
+    let compose (v1 : Validator<'a>) (v2 : Validator<'a>) : Validator<'a> =
         fun (field : string) (value : 'a) ->            
-            match a field value, b field value with
-            | Success a', Success _  -> Success a'
+            match v1 field value, v2 field value with
+            | Success a, Success _   -> Success a
             | Failure e, Success _   -> Failure e
             | Success _, Failure e   -> Failure e
             | Failure e1, Failure e2 -> Failure (ValidationErrors.merge e1 e2)                           
@@ -97,7 +105,8 @@ module Validator =
         fun (field : string) (value : 'a) ->
             let error = ValidationErrors.create field [ message field ]
             ValidationResult.create (rule value) value error
-        
+
+/// Validation rules
 module ValidationRule =
     let equality<'a when 'a : equality> (equalTo : 'a) : ValidationRule<'a> = 
         fun v -> v = equalTo
@@ -325,7 +334,6 @@ module Validators =
         
         /// System.TimeSpan validators with default error messages
         let TimeSpan = DefaultComparisonValidator<TimeSpan>(TimeSpan)
-        
 
 /// Custom operators for ValidationResult
 module Operators =
@@ -337,3 +345,14 @@ module Operators =
 
     /// Alias for Validator.compose
     let (<+>) = Validator.compose
+
+/// ValidationResult Builder
+type ValidationResultBuilder() = 
+    member _.MergeSources (r1 : ValidationResult<'a>, r2 : ValidationResult<'b>) : ValidationResult<'a * 'b> =
+        ValidationResult.zip r1 r2
+
+    member _.BindReturn (result : ValidationResult<'a>, fn : 'a -> 'b) : ValidationResult<'b> =
+        ValidationResult.map fn result
+
+/// Validate computation expression
+let validate = ValidationResultBuilder()
