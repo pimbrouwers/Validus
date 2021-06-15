@@ -86,6 +86,7 @@ module ValidationResult =
     let zip (r1 : ValidationResult<'a>) (r2 : ValidationResult<'b>) : ValidationResult<'a * 'b> =
         match r1, r2 with
         | Success x1res, Success x2res -> Success (x1res, x2res)
+        | Failure e1, Failure e2       -> Failure (ValidationErrors.merge e1 e2)
         | Failure e, _                 -> Failure e
         | _, Failure e                 -> Failure e
 

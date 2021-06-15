@@ -89,3 +89,25 @@ let ``Validation of record fails`` () =
         let rMap = ValidationErrors.toMap r
         (rMap.ContainsKey "Name", rMap.ContainsKey "Age") |> should equal (true, true)
         rMap.["Age"] |> should equal ["Age must be greater than 3"])
+
+[<Fact>]
+let ``Validation of record fails with computation expression`` () =           
+    let name = "Jo"
+    let age = 3
+    let result : ValidationResult<FakeValidationRecord> =         
+        let nameValidator =             
+            Validators.Default.String.greaterThanLen 2
+            <+> Validators.Default.String.lessThanLen 100
+
+        validate {
+            let! name = nameValidator "Name" name
+            and! age = Validators.Int.greaterThan 3 (Some (sprintf "%s must be greater than 3")) "Age" age
+            return FakeValidationRecord.Create name age
+        }
+    
+    result 
+    |> ValidationResult.toResult
+    |> Result.mapError (fun r -> 
+        let rMap = ValidationErrors.toMap r
+        (rMap.ContainsKey "Name", rMap.ContainsKey "Age") |> should equal (true, true)
+        rMap.["Age"] |> should equal ["Age must be greater than 3"])
