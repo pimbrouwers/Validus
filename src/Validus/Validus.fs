@@ -164,6 +164,7 @@ module Validators =
             let msg = message |> Option.defaultValue defaultMessage
             let rule = ValidationRule.equality equalTo
             Validator.create msg rule
+
         // Value is not equal to provided value
         member _.notEquals (notEqualTo : 'a) (message : ValidationMessage option) : Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must not equal %A" field notEqualTo
@@ -210,6 +211,13 @@ module Validators =
             let defaultMessage = fun field -> sprintf "%s must be empty" field
             let msg = message |> Option.defaultValue defaultMessage
             Validator.create msg ValidationRule.empty
+
+        /// Validate string length is equal to provided value
+        member _.equalsLen (len : int) (message : ValidationMessage option) : Validator<string> =
+            let defaultMessage = fun field -> sprintf "%s must be exactly %i characters" field len
+            let msg = message |> Option.defaultValue defaultMessage
+            let rule = ValidationRule.greaterThanLen len
+            Validator.create msg rule
 
         /// Validate string length is greater than provided value
         member _.greaterThanLen (min : int) (message : ValidationMessage option) : Validator<string> =
