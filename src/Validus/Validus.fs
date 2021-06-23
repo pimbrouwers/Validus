@@ -127,6 +127,9 @@ module ValidationRule =
     let betweenLen (min : int) (max : int) : ValidationRule<string> =
         fun str -> str.Length |> between min max
 
+    let equalsLen (len : int) : ValidationRule<string> =
+        fun str -> str.Length |> equality len
+
     let greaterThanLen (min : int) : ValidationRule<string> =
         fun str -> str.Length |> greaterThan min
 
@@ -214,9 +217,9 @@ module Validators =
 
         /// Validate string length is equal to provided value
         member _.equalsLen (len : int) (message : ValidationMessage option) : Validator<string> =
-            let defaultMessage = fun field -> sprintf "%s must be exactly %i characters" field len
+            let defaultMessage = fun field -> sprintf "%s must be %i characters" field len
             let msg = message |> Option.defaultValue defaultMessage
-            let rule = ValidationRule.greaterThanLen len
+            let rule = ValidationRule.equalsLen len
             Validator.create msg rule
 
         /// Validate string length is greater than provided value
@@ -232,6 +235,7 @@ module Validators =
             let msg = message |> Option.defaultValue defaultMessage
             let rule = ValidationRule.lessThanLen max
             Validator.create msg rule
+
         /// Validate string is not null or ""
         member _.notEmpty (message : ValidationMessage option) : Validator<string> =
             let defaultMessage = fun field -> sprintf "%s must not be empty" field
@@ -300,6 +304,9 @@ module Validators =
 
             /// Validate string is null or "" with default error message
             member _.empty = this.empty None
+
+            /// Validate string length is greater than provided value with default error message
+            member _.equalsLen (len : int) = this.equalsLen len None
 
             /// Validate string length is greater than provided value with default error message
             member _.greaterThanLen (min : int) = this.greaterThanLen min None

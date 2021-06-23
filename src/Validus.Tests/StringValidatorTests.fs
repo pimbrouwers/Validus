@@ -32,6 +32,12 @@ let ``(TestValidator.empty) should produce Failure`` () =
     | Failure _ -> true
 
 [<Property>]
+let ``(TestValidator.equalsLen len) should produce Success`` () =               
+    match TestValidator.equalsLen 7 None "Test" testString with
+    | Success _ -> true
+    | Failure _ -> false
+
+[<Property>]
 let ``(TestValidator.greaterThanLen min) should produce Success`` () =               
     match TestValidator.greaterThanLen 0 None "Test" testString with
     | Success _ -> true
