@@ -26,7 +26,7 @@ type PersonInput =
         LastName  : string
         Email     : string
         Age       : int option
-        StartDate : DateTime option
+        StartDate : DateTime option 
     }
 
 type Name = 
@@ -34,6 +34,12 @@ type Name =
         First : string
         Last : string 
     }
+
+    static member Create first last = 
+        {
+          First = first
+          Last  = last
+        }
 
 type Person = 
     { 
@@ -45,7 +51,7 @@ type Person =
 
     static member Create first last email age startDate =
         { 
-            Name      = { First = first; Last = last }
+            Name      = Name.Create first last
             Email     = email
             Age       = age 
             StartDate = startDate
@@ -200,12 +206,25 @@ let between1and100Chars =
 between1and100Chars "validus" // ValidationResult<string>
 ```
 
+## [`equalsLen`](https://github.com/pimbrouwers/Validus/blob/e555cc01f41f2d717ecec32fcb46616dca7243e8/src/Validus/Validus.fs#L219)
+
+Applies to: `string`
+
+```fsharp
+// Define a validator which checks if a string is equals to
+// 100 chars displaying the standard error message.
+let equals100Chars = 
+  Validators.String.equalsLen 100 None "field"
+
+equals100Chars "validus" // ValidationResult<string>
+```
+
 ## [`greaterThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L136)
 
 Applies to: `string`
 
 ```fsharp
-// Define a validator which checks if a string is greater tha
+// Define a validator which checks if a string is greater than
 // 100 chars displaying the standard error message.
 let greaterThan100Chars = 
   Validators.String.greaterThanLen 100 None "field"
