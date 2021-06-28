@@ -318,7 +318,7 @@ module Validators =
             member _.notEmpty = this.notEmpty None
 
             /// Validate string matches regular expression with default error message
-            member _.pattern (pattern : string) = this.pattern pattern
+            member _.pattern (pattern : string) = this.pattern pattern None
     
         /// Execute validator if 'a is Some, otherwise return Failure with default error message
         let required (validator : Validator<'a>) (field : string) (value : 'a option) : ValidationResult<'a> =  
