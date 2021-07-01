@@ -131,6 +131,8 @@ type Validator<'a> = string -> 'a -> ValidationResult<'a>
 Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if a string equals
 // "foo" displaying the standard error message.
 let equalsFoo = 
@@ -144,6 +146,8 @@ equalsFoo "bar" // ValidationResult<string>
 Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if a string is not 
 // equal to "foo" displaying the standard error message.
 let notEqualsFoo = 
@@ -157,6 +161,8 @@ notEqualsFoo "bar" // ValidationResult<string>
 Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if an int is between
 // 1 and 100 (inclusive) displaying the standard error message.
 let between1and100 = 
@@ -170,6 +176,8 @@ between1and100 12 // ValidationResult<int>
 Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if an int is greater than
 // 100 displaying the standard error message.
 let greaterThan100 = 
@@ -183,6 +191,8 @@ greaterThan100 12 // ValidationResult<int>
 Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if an int is less than
 // 100 displaying the standard error message.
 let lessThan100 = 
@@ -198,6 +208,8 @@ lessThan100 12 // ValidationResult<int>
 Applies to: `string`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if a string is between
 // 1 and 100 chars displaying the standard error message.
 let between1and100Chars = 
@@ -211,6 +223,8 @@ between1and100Chars "validus" // ValidationResult<string>
 Applies to: `string`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if a string is equals to
 // 100 chars displaying the standard error message.
 let equals100Chars = 
@@ -224,6 +238,8 @@ equals100Chars "validus" // ValidationResult<string>
 Applies to: `string`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if a string is greater than
 // 100 chars displaying the standard error message.
 let greaterThan100Chars = 
@@ -237,6 +253,8 @@ greaterThan100Chars "validus" // ValidationResult<string>
 Applies to: `string`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if a string is less tha
 // 100 chars displaying the standard error message.
 let lessThan100Chars = 
@@ -250,6 +268,8 @@ lessThan100Chars "validus" // ValidationResult<string>
 Applies to: `string`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if a string is empty
 // displaying the standard error message.
 let stringIsEmpty = 
@@ -263,6 +283,8 @@ stringIsEmpty "validus" // ValidationResult<string>
 Applies to: `string`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if a string is not empty
 // displaying the standard error message.
 let stringIsNotEmpty = 
@@ -276,6 +298,8 @@ stringIsNotEmpty "validus" // ValidationResult<string>
 Applies to: `string`
 
 ```fsharp
+open Validus 
+
 // Define a validator which checks if a string matches the 
 // provided regex displaying the standard error message.
 let stringIsChars = 
@@ -289,6 +313,9 @@ stringIsChars "validus" // ValidationResult<string>
 Custom validators can be created by combining built-in validators together using `Validator.compose`, or the `<+>` infix operator, as well as creating bespoke validator's using `Validator.create`.
 
 ```f#
+open Validus 
+open Validus.Operators
+
 // Combining built-in validators
 let emailValidator = 
     Validators.Default.String.betweenLen 8 512
