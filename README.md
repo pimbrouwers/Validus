@@ -21,41 +21,31 @@ open Validus
 open Validus.Operators
 
 type PersonInput = 
-    { 
-        FirstName : string
-        LastName  : string
-        Email     : string
-        Age       : int option
-        StartDate : DateTime option 
-    }
+    { FirstName : string
+      LastName  : string
+      Email     : string
+      Age       : int option
+      StartDate : DateTime option }
 
 type Name = 
-    { 
-        First : string
-        Last : string 
-    }
+    { First : string
+      Last : string }
 
     static member Create first last = 
-        {
-          First = first
-          Last  = last
-        }
+        { First = first
+          Last  = last }
 
 type Person = 
-    { 
-        Name      : Name
-        Email     : string
-        Age       : int option 
-        StartDate : DateTime
-    }
+    { Name      : Name
+      Email     : string
+      Age       : int option 
+      StartDate : DateTime }
 
     static member Create first last email age startDate =
-        { 
-            Name      = Name.Create first last
-            Email     = email
-            Age       = age 
-            StartDate = startDate
-        }   
+        { Name      = Name.Create first last
+          Email     = email
+          Age       = age 
+          StartDate = startDate }   
 
 let validatePersonInput (input : PersonInput) = 
     // Shared validator for first & last name
@@ -92,13 +82,11 @@ let validatePersonInput (input : PersonInput) =
 // Execution
 //
 let input : PersonInput = 
-    { 
-        FirstName = "John"
-        LastName  = "Doe"
-        Email     = "john.doe@url.com"
-        Age       = Some 63
-        StartDate = Some (new DateTime(2058, 1, 1))
-    }
+    { FirstName = "John"
+      LastName  = "Doe"
+      Email     = "john.doe@url.com"
+      Age       = Some 63
+      StartDate = Some (new DateTime(2058, 1, 1)) }
 
 match validatePerson input with 
 | Success p -> printfn "%A" p
