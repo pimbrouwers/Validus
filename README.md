@@ -8,10 +8,10 @@ Validus is a composable validation library for F#, with built-in validators for 
 ## Key Features
 
 - Composable validation.
-- [Applicative computation expression](https://docs.microsoft.com/en-us/dotnet/fsharp/whats-new/fsharp-50#applicative-computation-expressions) (`validate { ... }`).
-- [Built-in](#built-in-validators) for most primitive types.
+- [Built-in](#built-in-validators) validators for most primitive types.
 - Easily extended through [custom-validators](#custom-validators).
-- Infix [operators](#operators) to provide clean syntax.
+- Infix [operators](#operators) to provide clean syntax or.
+- [Applicative computation expression](https://docs.microsoft.com/en-us/dotnet/fsharp/whats-new/fsharp-50#applicative-computation-expressions) (`validate { ... }`).
 
 ## Quick Start
 
