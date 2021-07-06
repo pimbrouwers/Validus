@@ -161,14 +161,14 @@ module Validators =
         | None   -> Failure (ValidationErrors.create field [ (message |> Option.defaultValue defaultMessage) field ])           
          
     type EqualityValidator<'a when 'a : equality>() =
-        // Value is equal to provided value
+        /// Value is equal to provided value
         member _.equals (equalTo : 'a) (message : ValidationMessage option) : Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must be equal to %A" field equalTo
             let msg = message |> Option.defaultValue defaultMessage
             let rule = ValidationRule.equality equalTo
             Validator.create msg rule
 
-        // Value is not equal to provided value
+        /// Value is not equal to provided value
         member _.notEquals (notEqualTo : 'a) (message : ValidationMessage option) : Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must not equal %A" field notEqualTo
             let msg = message |> Option.defaultValue defaultMessage
@@ -178,21 +178,21 @@ module Validators =
     type ComparisonValidator<'a when 'a : comparison>() = 
         inherit EqualityValidator<'a>()
 
-        // Value is inclusively between provided min and max
+        /// Value is inclusively between provided min and max
         member _.between (min : 'a) (max : 'a) (message : ValidationMessage option) : Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must be between %A and %A" field min max
             let msg = message |> Option.defaultValue defaultMessage
             let rule = ValidationRule.between min max
             Validator.create msg rule
         
-        // Value is greater than provided min
+        /// Value is greater than provided min
         member _.greaterThan (min : 'a) (message : ValidationMessage option) : Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must be greater than or equal to %A" field min
             let msg = message |> Option.defaultValue defaultMessage
             let rule = ValidationRule.greaterThan min
             Validator.create msg rule
         
-        // Value is less than provided max
+        /// Value is less than provided max
         member _.lessThan (max : 'a) (message : ValidationMessage option) : Validator<'a> =            
             let defaultMessage = fun field -> sprintf "%s must be less than or equal to %A" field max
             let msg = message |> Option.defaultValue defaultMessage
@@ -278,22 +278,22 @@ module Validators =
 
     module Default = 
         type DefaultEqualityValidator<'a when 'a : equality>(x : EqualityValidator<'a>) =        
-            // Value is equal to provided value with default error message
+            /// Value is equal to provided value with default error message
             member _.equals (equalTo: 'a) : Validator<'a> = x.equals equalTo None
         
-            // Value is not equal to provided value with default error message
+            /// Value is not equal to provided value with default error message
             member _.notEquals (notEqualTo : 'a) = x.notEquals notEqualTo None
         
         type DefaultComparisonValidator<'a when 'a : comparison>(x : ComparisonValidator<'a>) = 
             inherit DefaultEqualityValidator<'a>(x)
     
-            // Value is inclusively between provided min and max with default error message
+            /// Value is inclusively between provided min and max with default error message
             member _.between (min : 'a) (max : 'a) = x.between min max None
                     
-            // Value is greater than provided min with default error message
+            /// Value is greater than provided min with default error message
             member _.greaterThan (min : 'a) = x.greaterThan min None
     
-            // Value is less than provided max with default error message
+            /// Value is less than provided max with default error message
             member _.lessThan (max : 'a) = x.lessThan max None
     
         type DefaultStringValidator(this : StringValidator) =
