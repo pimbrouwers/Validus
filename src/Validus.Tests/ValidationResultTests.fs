@@ -81,7 +81,7 @@ let ``Validation of record fails`` () =
 
         FakeValidationRecord.Create
         <!> nameValidator "Name" name
-        <*> Validators.Int.greaterThan 3 (Some (sprintf "%s must be greater than 3")) "Age" age
+        <*> Validators.Int.greaterThan 3 (sprintf "%s must be greater than 3") "Age" age
     
     result 
     |> ValidationResult.toResult
@@ -101,7 +101,7 @@ let ``Validation of record fails with computation expression`` () =
 
         validate {
             let! name = nameValidator "Name" name
-            and! age = Validators.Int.greaterThan 3 (Some (sprintf "%s must be greater than 3")) "Age" age
+            and! age = Validators.Int.greaterThan 3 (sprintf "%s must be greater than 3") "Age" age
             return FakeValidationRecord.Create name age
         }
     

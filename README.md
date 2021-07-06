@@ -15,7 +15,7 @@ Validus is a composable validation library for F#, with built-in validators for 
 
 ## Quick Start
 
-A common example of receiving input from an untrusted source `PersonInput` (ex: user form submission), applying validation and producing a result based on success/failure.
+A common example of receiving input from an untrusted source `PersonInput` (i.e., HTML form submission), applying validation and producing a result based on success/failure.
 
 ```f#
 open Validus
@@ -42,8 +42,8 @@ type Person =
       Age       : int option 
       StartDate : DateTime }
 
-    static member Create first last email age startDate =
-        { Name      = Name.Create first last
+    static member Create name email age startDate =
+        { Name      = name
           Email     = email
           Age       = age 
           StartDate = startDate }   
@@ -58,7 +58,7 @@ let validatePersonInput (input : PersonInput) =
     // opposed to "Validators.Default.String")
     let emailValidator = 
         Validators.Default.String.betweenLen 8 512
-        <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (Some (sprintf "Please provide a valid %s")) 
+        <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (sprintf "Please provide a valid %s")
 
     // Defining a validator for an value option
     let ageValidator = 
@@ -76,7 +76,8 @@ let validatePersonInput (input : PersonInput) =
       and! age = ageValidator "Age" input.Age
       and! startDate = dateValidator "Start Date" input.StartDate
 
-      return Person.Create first last email age startDate
+      let name = Name.Create first last
+      return Person.Create name email age startDate
     }
 
 //
@@ -108,12 +109,12 @@ type ValidationMessage = string -> string
 // Produce a validation result based on a field name and result
 type Validator<'a> = string -> 'a -> ValidationResult<'a>
 
-// Given 'a value, and optional validtion message produce 
+// Given 'a value, and validtion message produce 
 // a ready to use validator for 'a
-'a -> ValidationMessage option -> Validator<'a>
+'a -> ValidationMessage -> Validator<'a>
 ```
 
-> Note: Validators pre-populated with the default error messages reside within the `Validators.Default` module.
+> Note: Validators pre-populated with English-language default error messages reside within the `Validators.Default` module.
 
 ## [`equals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L99)
 
@@ -125,7 +126,7 @@ open Validus
 // Define a validator which checks if a string equals
 // "foo" displaying the standard error message.
 let equalsFoo = 
-  Validators.String.equals "foo" None "field"
+  Validators.Default.String.equals "foo" "field"
 
 equalsFoo "bar" // ValidationResult<string>
 ```
@@ -140,7 +141,7 @@ open Validus
 // Define a validator which checks if a string is not 
 // equal to "foo" displaying the standard error message.
 let notEqualsFoo = 
-  Validators.String.equals "foo" None "field"
+  Validators.Default.String.notEquals "foo" "field"
 
 notEqualsFoo "bar" // ValidationResult<string>
 ```
@@ -155,7 +156,7 @@ open Validus
 // Define a validator which checks if an int is between
 // 1 and 100 (inclusive) displaying the standard error message.
 let between1and100 = 
-  Validators.Int.between 1 100 None "field"
+  Validators.Default.Int.between 1 100 "field"
 
 between1and100 12 // ValidationResult<int>
 ```
@@ -170,7 +171,7 @@ open Validus
 // Define a validator which checks if an int is greater than
 // 100 displaying the standard error message.
 let greaterThan100 = 
-  Validators.Int.greaterThan 100 None "field"
+  Validators.Default.Int.greaterThan 100 "field"
 
 greaterThan100 12 // ValidationResult<int>
 ```
@@ -185,7 +186,7 @@ open Validus
 // Define a validator which checks if an int is less than
 // 100 displaying the standard error message.
 let lessThan100 = 
-  Validators.Int.lessThan 100 None "field"
+  Validators.Default.Int.lessThan 100 "field"
 
 lessThan100 12 // ValidationResult<int>
 ```
@@ -202,7 +203,7 @@ open Validus
 // Define a validator which checks if a string is between
 // 1 and 100 chars displaying the standard error message.
 let between1and100Chars = 
-  Validators.String.betweenLen 1 100 None "field"
+  Validators.Default.String.betweenLen 1 100 "field"
 
 between1and100Chars "validus" // ValidationResult<string>
 ```
@@ -217,7 +218,7 @@ open Validus
 // Define a validator which checks if a string is equals to
 // 100 chars displaying the standard error message.
 let equals100Chars = 
-  Validators.String.equalsLen 100 None "field"
+  Validators.Default.String.equalsLen 100 "field"
 
 equals100Chars "validus" // ValidationResult<string>
 ```
@@ -232,7 +233,7 @@ open Validus
 // Define a validator which checks if a string is greater than
 // 100 chars displaying the standard error message.
 let greaterThan100Chars = 
-  Validators.String.greaterThanLen 100 None "field"
+  Validators.Default.String.greaterThanLen 100 "field"
 
 greaterThan100Chars "validus" // ValidationResult<string>
 ```
@@ -247,7 +248,7 @@ open Validus
 // Define a validator which checks if a string is less tha
 // 100 chars displaying the standard error message.
 let lessThan100Chars = 
-  Validators.String.lessThanLen 100 None "field"
+  Validators.Default.String.lessThanLen 100 "field"
 
 lessThan100Chars "validus" // ValidationResult<string>
 ```
@@ -262,7 +263,7 @@ open Validus
 // Define a validator which checks if a string is empty
 // displaying the standard error message.
 let stringIsEmpty = 
-  Validators.String.empty None "field"
+  Validators.Default.String.empty "field"
 
 stringIsEmpty "validus" // ValidationResult<string>
 ```
@@ -277,7 +278,7 @@ open Validus
 // Define a validator which checks if a string is not empty
 // displaying the standard error message.
 let stringIsNotEmpty = 
-  Validators.String.notEmpty None "field"
+  Validators.Default.String.notEmpty "field"
 
 stringIsNotEmpty "validus" // ValidationResult<string>
 ```
@@ -292,7 +293,7 @@ open Validus
 // Define a validator which checks if a string matches the 
 // provided regex displaying the standard error message.
 let stringIsChars = 
-  Validators.String.pattern "[a-z]" None "field"
+  Validators.Default.String.pattern "[a-z]" "field"
 
 stringIsChars "validus" // ValidationResult<string>
 ```

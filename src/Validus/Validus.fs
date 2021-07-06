@@ -154,100 +154,75 @@ module Validators =
         | None   -> Success value
 
     /// Execute validator if 'a is Some, otherwise return Failure 
-    let required (validator : Validator<'a>) (message : ValidationMessage option) (field : string) (value : 'a option) : ValidationResult<'a> =  
-        let defaultMessage = fun field -> sprintf "%s is required" field
+    let required (validator : Validator<'a>) (message : ValidationMessage) (field : string) (value : 'a option) : ValidationResult<'a> =          
         match value with
         | Some v -> validator field v
-        | None   -> Failure (ValidationErrors.create field [ (message |> Option.defaultValue defaultMessage) field ])           
+        | None   -> Failure (ValidationErrors.create field [ message field ])           
          
     type EqualityValidator<'a when 'a : equality>() =
         /// Value is equal to provided value
-        member _.equals (equalTo : 'a) (message : ValidationMessage option) : Validator<'a> =            
-            let defaultMessage = fun field -> sprintf "%s must be equal to %A" field equalTo
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.equals (equalTo : 'a) (message : ValidationMessage) : Validator<'a> =            
             let rule = ValidationRule.equality equalTo
-            Validator.create msg rule
+            Validator.create message rule
 
         /// Value is not equal to provided value
-        member _.notEquals (notEqualTo : 'a) (message : ValidationMessage option) : Validator<'a> =            
-            let defaultMessage = fun field -> sprintf "%s must not equal %A" field notEqualTo
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.notEquals (notEqualTo : 'a) (message : ValidationMessage) : Validator<'a> =                        
             let rule = ValidationRule.inequality notEqualTo
-            Validator.create msg rule    
+            Validator.create message rule    
                 
     type ComparisonValidator<'a when 'a : comparison>() = 
         inherit EqualityValidator<'a>()
 
         /// Value is inclusively between provided min and max
-        member _.between (min : 'a) (max : 'a) (message : ValidationMessage option) : Validator<'a> =            
-            let defaultMessage = fun field -> sprintf "%s must be between %A and %A" field min max
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.between (min : 'a) (max : 'a) (message : ValidationMessage) : Validator<'a> =                        
             let rule = ValidationRule.between min max
-            Validator.create msg rule
+            Validator.create message rule
         
         /// Value is greater than provided min
-        member _.greaterThan (min : 'a) (message : ValidationMessage option) : Validator<'a> =            
-            let defaultMessage = fun field -> sprintf "%s must be greater than or equal to %A" field min
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.greaterThan (min : 'a) (message : ValidationMessage) : Validator<'a> =                        
             let rule = ValidationRule.greaterThan min
-            Validator.create msg rule
+            Validator.create message rule
         
         /// Value is less than provided max
-        member _.lessThan (max : 'a) (message : ValidationMessage option) : Validator<'a> =            
-            let defaultMessage = fun field -> sprintf "%s must be less than or equal to %A" field max
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.lessThan (max : 'a) (message : ValidationMessage) : Validator<'a> =                                    
             let rule = ValidationRule.lessThan max
-            Validator.create msg rule
+            Validator.create message rule
     
     type StringValidator() =
         inherit EqualityValidator<string>() 
 
         /// Validate string is between length (inclusive)
-        member _.betweenLen (min : int) (max : int) (message : ValidationMessage option) : Validator<string> =
-            let defaultMessage = fun field -> sprintf "%s must be between %i and %i characters" field min max            
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.betweenLen (min : int) (max : int) (message : ValidationMessage) : Validator<string> =            
             let rule = ValidationRule.betweenLen min max
-            Validator.create msg rule
+            Validator.create message rule
 
         /// Validate string is null or ""
-        member _.empty (message : ValidationMessage option) : Validator<string> =
-            let defaultMessage = fun field -> sprintf "%s must be empty" field
-            let msg = message |> Option.defaultValue defaultMessage
-            Validator.create msg ValidationRule.empty
+        member _.empty (message : ValidationMessage) : Validator<string> =            
+            Validator.create message ValidationRule.empty
 
         /// Validate string length is equal to provided value
-        member _.equalsLen (len : int) (message : ValidationMessage option) : Validator<string> =
-            let defaultMessage = fun field -> sprintf "%s must be %i characters" field len
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.equalsLen (len : int) (message : ValidationMessage) : Validator<string> =            
             let rule = ValidationRule.equalsLen len
-            Validator.create msg rule
+            Validator.create message rule
 
         /// Validate string length is greater than provided value
-        member _.greaterThanLen (min : int) (message : ValidationMessage option) : Validator<string> =
-            let defaultMessage = fun field -> sprintf "%s must not execeed %i characters" field min
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.greaterThanLen (min : int) (message : ValidationMessage) : Validator<string> =            
             let rule = ValidationRule.greaterThanLen min
-            Validator.create msg rule
+            Validator.create message rule
 
         /// Validate string length is less than provided value
-        member _.lessThanLen (max : int) (message : ValidationMessage option) : Validator<string> =
-            let defaultMessage = fun field -> sprintf "%s must be at least %i characters" field max
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.lessThanLen (max : int) (message : ValidationMessage) : Validator<string> =            
             let rule = ValidationRule.lessThanLen max
-            Validator.create msg rule
+            Validator.create message rule
 
         /// Validate string is not null or ""
-        member _.notEmpty (message : ValidationMessage option) : Validator<string> =
-            let defaultMessage = fun field -> sprintf "%s must not be empty" field
-            let msg = message |> Option.defaultValue defaultMessage
-            Validator.create msg ValidationRule.notEmpty
+        member _.notEmpty (message : ValidationMessage) : Validator<string> =            
+            Validator.create message ValidationRule.notEmpty
 
         /// Validate string matches regular expression
-        member _.pattern (pattern : string) (message : ValidationMessage option) : Validator<string> =
-            let defaultMessage = fun field -> sprintf "%s must match pattern %s" field pattern
-            let msg = message |> Option.defaultValue defaultMessage
+        member _.pattern (pattern : string) (message : ValidationMessage) : Validator<string> =            
             let rule = ValidationRule.pattern pattern
-            Validator.create msg rule
+            Validator.create message rule
 
     /// System.DateTime validators
     let DateTime = ComparisonValidator<DateTime>()
@@ -278,77 +253,77 @@ module Validators =
 
     module Default = 
         type DefaultEqualityValidator<'a when 'a : equality>(x : EqualityValidator<'a>) =        
-            /// Value is equal to provided value with default error message
-            member _.equals (equalTo: 'a) : Validator<'a> = x.equals equalTo None
+            /// Value is equal to provided value with the default error message
+            member _.equals (equalTo: 'a) : Validator<'a> = x.equals equalTo (fun field -> sprintf "%s must be equal to %A" field equalTo)
         
-            /// Value is not equal to provided value with default error message
-            member _.notEquals (notEqualTo : 'a) = x.notEquals notEqualTo None
+            /// Value is not equal to provided value with the default error message
+            member _.notEquals (notEqualTo : 'a) = x.notEquals notEqualTo (fun field -> sprintf "%s must not equal %A" field notEqualTo)
         
         type DefaultComparisonValidator<'a when 'a : comparison>(x : ComparisonValidator<'a>) = 
             inherit DefaultEqualityValidator<'a>(x)
     
-            /// Value is inclusively between provided min and max with default error message
-            member _.between (min : 'a) (max : 'a) = x.between min max None
+            /// Value is inclusively between provided min and max with the default error message
+            member _.between (min : 'a) (max : 'a) = x.between min max (fun field -> sprintf "%s must be between %A and %A" field min max)
                     
-            /// Value is greater than provided min with default error message
-            member _.greaterThan (min : 'a) = x.greaterThan min None
+            /// Value is greater than provided min with the default error message
+            member _.greaterThan (min : 'a) = x.greaterThan min (fun field -> sprintf "%s must be greater than or equal to %A" field min)
     
-            /// Value is less than provided max with default error message
-            member _.lessThan (max : 'a) = x.lessThan max None
+            /// Value is less than provided max with the default error message
+            member _.lessThan (max : 'a) = x.lessThan max (fun field -> sprintf "%s must be less than or equal to %A" field max)
     
         type DefaultStringValidator(this : StringValidator) =
             inherit DefaultEqualityValidator<string>(this) 
 
-            /// Validate string is between length (inclusive) with default error message
-            member _.betweenLen (min : int) (max : int) = this.betweenLen min max None
+            /// Validate string is between length (inclusive) with the default error message
+            member _.betweenLen (min : int) (max : int) = this.betweenLen min max (fun field -> sprintf "%s must be between %i and %i characters" field min max)
 
-            /// Validate string is null or "" with default error message
-            member _.empty = this.empty None
+            /// Validate string is null or "" with the default error message
+            member _.empty = this.empty (fun field -> sprintf "%s must be empty" field)
 
-            /// Validate string length is greater than provided value with default error message
-            member _.equalsLen (len : int) = this.equalsLen len None
+            /// Validate string length is greater than provided value with the default error message
+            member _.equalsLen (len : int) = this.equalsLen len (fun field -> sprintf "%s must be %i characters" field len)
 
-            /// Validate string length is greater than provided value with default error message
-            member _.greaterThanLen (min : int) = this.greaterThanLen min None
+            /// Validate string length is greater than provided value with the default error message
+            member _.greaterThanLen (min : int) = this.greaterThanLen min (fun field -> sprintf "%s must not execeed %i characters" field min)
 
-            /// Validate string length is less than provided value with default error message
-            member _.lessThanLen (max : int) = this.lessThanLen max None
+            /// Validate string length is less than provided value with the default error message
+            member _.lessThanLen (max : int) = this.lessThanLen max (fun field -> sprintf "%s must be at least %i characters" field max)
 
-            /// Validate string is not null or "" with default error message
-            member _.notEmpty = this.notEmpty None
+            /// Validate string is not null or "" with the default error message
+            member _.notEmpty = this.notEmpty (fun field -> sprintf "%s must not be empty" field)
 
-            /// Validate string matches regular expression with default error message
-            member _.pattern (pattern : string) = this.pattern pattern None
+            /// Validate string matches regular expression with the default error message
+            member _.pattern (pattern : string) = this.pattern pattern (fun field -> sprintf "%s must match pattern %s" field pattern)
     
-        /// Execute validator if 'a is Some, otherwise return Failure with default error message
+        /// Execute validator if 'a is Some, otherwise return Failure with the default error message
         let required (validator : Validator<'a>) (field : string) (value : 'a option) : ValidationResult<'a> =  
-            required validator None field value
+            required validator (fun field -> sprintf "%s is required" field) field value
 
-        /// System.DateTime validators with default error messages
+        /// System.DateTime validators with the default error messages
         let DateTime = DefaultComparisonValidator<DateTime>(DateTime)
         
-        /// System.DateTimeOffset validators with default error messages
+        /// System.DateTimeOffset validators with the default error messages
         let DateTimeOffset = DefaultComparisonValidator<DateTimeOffset>(DateTimeOffset)
         
-        /// Microsoft.FSharp.Core.decimal validators with default error messages
+        /// Microsoft.FSharp.Core.decimal validators with the default error messages
         let Decimal = DefaultComparisonValidator<decimal>(Decimal)
         
-        /// Microsoft.FSharp.Core.float  validators with default error messages
+        /// Microsoft.FSharp.Core.float validators with the default error messages
         let Float = DefaultComparisonValidator<float>(Float)
         
-        /// Microsoft.FSharp.Core.int32 validators with default error messages
+        /// Microsoft.FSharp.Core.int32 validators with the default error messages
         let Int = DefaultComparisonValidator<int>(Int) 
         
-        /// Microsoft.FSharp.Core.16 validators with default error messages
+        /// Microsoft.FSharp.Core.16 validators with the default error messages
         let Int16 = DefaultComparisonValidator<int16>(Int16)
         
-        /// Microsoft.FSharp.Core.int64 validators with default error messages
+        /// Microsoft.FSharp.Core.int64 validators with the default error messages
         let Int64 = DefaultComparisonValidator<int64>(Int64)
         
-        /// Microsoft.FSharp.Core.string validators with default error messages
+        /// Microsoft.FSharp.Core.string validators with the default error messages
         let String = DefaultStringValidator(String)
         
-        /// System.TimeSpan validators with default error messages
+        /// System.TimeSpan validators with the default error messages
         let TimeSpan = DefaultComparisonValidator<TimeSpan>(TimeSpan)
 
 /// Custom operators for ValidationResult
