@@ -1,7 +1,7 @@
 # Validus
 
 [![NuGet Version](https://img.shields.io/nuget/v/Validus.svg)](https://www.nuget.org/packages/Validus)
-[![Build Status](https://travis-ci.org/pimbrouwers/Validus.svg?branch=main)](https://travis-ci.org/pimbrouwers/Validus)
+[![build](https://github.com/pimbrouwers/Validus/actions/workflows/build.yml/badge.svg)](https://github.com/pimbrouwers/Validus/actions/workflows/build.yml)
 
 Validus is a composable validation library for F#, with built-in validators for most primitive types and easily extended through custom validators.
 
