@@ -75,6 +75,10 @@ module ValidationResult =
     let map (fn : 'a -> 'b) (result : ValidationResult<'a>) : ValidationResult<'b> =
         apply (retn fn) result
 
+    /// Unpack ValidationResult with an Option<'a> value, evaluate function if (Success (Some x)) or return if Succes None or Failure
+    let mapOption (fn : 'a -> 'b) (result : ValidationResult<'a option>) : ValidationResult<'b option> =
+        map (Option.map fn) result
+
     /// Transform ValidationResult<'a> to Result<'a, ValidationErrors>
     let toResult (result : ValidationResult<'a>) : Result<'a, ValidationErrors> =
         match result with 
