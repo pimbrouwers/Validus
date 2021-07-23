@@ -40,7 +40,8 @@ type Person =
 
 let validatePersonDto (input : PersonDto) : Person = 
     // Shared validator for first & last name
-    let nameValidator = Validators.Default.String.betweenLen 3 64
+    let nameValidator = 
+        Validators.Default.String.betweenLen 3 64
 
     // Composing multiple validators to form complex validation rules,
     // overriding default error message (Note: "Validators.String" as 
