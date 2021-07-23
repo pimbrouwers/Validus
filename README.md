@@ -30,7 +30,7 @@ type PersonDto =
 
 type Name = 
     { First : string
-      Last : string }
+      Last  : string }
 
 type Person = 
     { Name      : Name
