@@ -393,7 +393,7 @@ open Validus
 
 let fooValidator =
     let fooRule : ValidationRule<string> = fun v -> v = "foo"
-    let fooMessage = sprintf "%s must be a string that matches 'foo'"
+    let fooMessage : ValidationMessage = sprintf "%s must be a string that matches 'foo'"
     Validator.create fooMessage fooRule
 
 "bar"
