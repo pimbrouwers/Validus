@@ -69,7 +69,7 @@ let validatePersonDto (input : PersonDto) =
           Name = { First = first; Last = last }
           Email = email
           Age = age
-          StartDate = startDate
+          StartDate = startDate }
     }
 
 //
@@ -114,6 +114,13 @@ let equalsFoo =
   Validators.Default.String.equals "foo" "field"
 
 equalsFoo "bar" // ValidationResult<string>
+
+// Define a validator which checks if a string equals
+// "foo" displaying a customized error message (string -> string).
+let equalsFooCustom = 
+  Validators.String.equals "foo" "field" (sprintf "%s must equal the word 'foo'")
+
+equalsFooCustom "bar" // ValidationResult<string>
 ```
 
 ## [`notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
