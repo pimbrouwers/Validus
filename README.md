@@ -386,7 +386,7 @@ let emailValidator =
 // Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
 ```
 
-### Creating bespoke validator's
+### Creating a bespoke validator
 
 ```f#
 open Validus 
