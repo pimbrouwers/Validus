@@ -38,7 +38,7 @@ type Person =
       Age       : int option 
       StartDate : DateTime }
 
-let validatePersonDto (input : PersonDto) = 
+let validatePersonDto (input : PersonDto) : Person = 
     // Shared validator for first & last name
     let nameValidator = Validators.Default.String.betweenLen 3 64
 
@@ -49,22 +49,22 @@ let validatePersonDto (input : PersonDto) =
         Validators.Default.String.betweenLen 8 512
         <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (sprintf "Please provide a valid %s")
 
-    // Defining a validator for an value option
+    // Defining a validator for an option value
     let ageValidator = 
         Validators.optional (Validators.Default.Int.between 1 100)
 
-    // Defining a validator for an required value option
+    // Defining a validator for an option value that is required
     let dateValidator = 
         Validators.Default.required (Validators.Default.DateTime.greaterThan DateTime.Now)
 
-    // Construct Person if all validators return Success
     validate {
       let! first = nameValidator "First name" input.FirstName
       and! last = nameValidator "Last name" input.LastName
       and! email = emailValidator "Email address" input.Email
       and! age = ageValidator "Age" input.Age
       and! startDate = dateValidator "Start Date" input.StartDate
-
+      
+      // Construct Person if all validators return Success
       return {
           Name = { First = first; Last = last }
           Email = email
@@ -74,7 +74,6 @@ let validatePersonDto (input : PersonDto) =
 
 //
 // Execution
-//
 let input : PersonDto = 
     { FirstName = "John"
       LastName  = "Doe"
