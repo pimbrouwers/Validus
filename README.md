@@ -18,6 +18,7 @@ Validus is a composable validation library for F#, with built-in validators for 
 A common example of receiving input from an untrusted source `PersonDto` (i.e., HTML form submission), applying validation and producing a result based on success/failure.
 
 ```f#
+open System
 open Validus
 open Validus.Operators
 
@@ -38,7 +39,7 @@ type Person =
       Age       : int option 
       StartDate : DateTime }
 
-let validatePersonDto (input : PersonDto) : Person = 
+let validatePersonDto (input : PersonDto) : ValidationResult<Person> = 
     // Shared validator for first & last name
     let nameValidator = 
         Validators.Default.String.betweenLen 3 64
@@ -82,7 +83,7 @@ let input : PersonDto =
       Age       = Some 63
       StartDate = Some (new DateTime(2058, 1, 1)) }
 
-match validatePerson input with 
+match validatePersonDto input with 
 | Success p -> printfn "%A" p
 | Failure e -> 
     e 
