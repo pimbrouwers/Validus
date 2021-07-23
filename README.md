@@ -111,14 +111,14 @@ open Validus
 // Define a validator which checks if a string equals
 // "foo" displaying the standard error message.
 let equalsFoo = 
-  Validators.Default.String.equals "foo" "field"
+  Validators.Default.String.equals "foo" "fieldName"
 
 equalsFoo "bar" // ValidationResult<string>
 
 // Define a validator which checks if a string equals
-// "foo" displaying a customized error message (string -> string).
+// "foo" displaying a custom error message (string -> string).
 let equalsFooCustom = 
-  Validators.String.equals "foo" "field" (sprintf "%s must equal the word 'foo'")
+  Validators.String.equals "foo" (sprintf "%s must equal the word 'foo'") "fieldName"
 
 equalsFooCustom "bar" // ValidationResult<string>
 ```
@@ -133,9 +133,16 @@ open Validus
 // Define a validator which checks if a string is not 
 // equal to "foo" displaying the standard error message.
 let notEqualsFoo = 
-  Validators.Default.String.notEquals "foo" "field"
+  Validators.Default.String.notEquals "foo" "fieldName"
 
 notEqualsFoo "bar" // ValidationResult<string>
+
+// Define a validator which checks if a string is not 
+// equal to "foo" displaying a custom error message (string -> string)
+let notEqualsFooCustom = 
+  Validators.String.notEquals "foo" (sprintf "%s must not equal the word 'foo'") "fieldName"
+
+notEqualsFooCustom "bar" // ValidationResult<string>
 ```
 
 ## [`between`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L110) (inclusive)
@@ -148,9 +155,16 @@ open Validus
 // Define a validator which checks if an int is between
 // 1 and 100 (inclusive) displaying the standard error message.
 let between1and100 = 
-  Validators.Default.Int.between 1 100 "field"
+  Validators.Default.Int.between 1 100 "fieldName"
 
 between1and100 12 // ValidationResult<int>
+
+// Define a validator which checks if an int is between
+// 1 and 100 (inclusive) displaying a custom error message.
+let between1and100Custom = 
+  Validators.Int.between 1 100 (sprintf "%s must be between 1 and 100") "fieldName"
+
+between1and100Custom 12 // ValidationResult<int>
 ```
 
 ## [`greaterThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L114)
@@ -163,9 +177,16 @@ open Validus
 // Define a validator which checks if an int is greater than
 // 100 displaying the standard error message.
 let greaterThan100 = 
-  Validators.Default.Int.greaterThan 100 "field"
+  Validators.Default.Int.greaterThan 100 "fieldName"
 
 greaterThan100 12 // ValidationResult<int>
+
+// Define a validator which checks if an int is greater than
+// 100 displaying a custom error message.
+let greaterThan100Custom = 
+  Validators.Int.greaterThan 100 (sprintf "%s must be greater than 100") "fieldName"
+
+greaterThan100Custom 12 // ValidationResult<int>
 ```
 
 ## [`lessThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L118)
@@ -178,9 +199,16 @@ open Validus
 // Define a validator which checks if an int is less than
 // 100 displaying the standard error message.
 let lessThan100 = 
-  Validators.Default.Int.lessThan 100 "field"
+  Validators.Default.Int.lessThan 100 "fieldName"
 
 lessThan100 12 // ValidationResult<int>
+
+// Define a validator which checks if an int is less than
+// 100 displaying a custom error message.
+let lessThan100Custom = 
+  Validators.Int.lessThan 100 (sprintf "%s must be less than 100") "fieldName"
+
+lessThan100Custom 12 // ValidationResult<int>
 ```
 
 ### String specific validators
@@ -195,9 +223,16 @@ open Validus
 // Define a validator which checks if a string is between
 // 1 and 100 chars displaying the standard error message.
 let between1and100Chars = 
-  Validators.Default.String.betweenLen 1 100 "field"
+  Validators.Default.String.betweenLen 1 100 "fieldName"
 
 between1and100Chars "validus" // ValidationResult<string>
+
+// Define a validator which checks if a string is between
+// 1 and 100 chars displaying a custom error message.
+let between1and100CharsCustom = 
+  Validators.String.betweenLen 1 100 (sprintf "%s must be between 1 and 100 chars") "fieldName"
+
+between1and100CharsCustom "validus" // ValidationResult<string>
 ```
 
 ## [`equalsLen`](https://github.com/pimbrouwers/Validus/blob/e555cc01f41f2d717ecec32fcb46616dca7243e8/src/Validus/Validus.fs#L219)
@@ -210,9 +245,16 @@ open Validus
 // Define a validator which checks if a string is equals to
 // 100 chars displaying the standard error message.
 let equals100Chars = 
-  Validators.Default.String.equalsLen 100 "field"
+  Validators.Default.String.equalsLen 100 "fieldName"
 
 equals100Chars "validus" // ValidationResult<string>
+
+// Define a validator which checks if a string is equals to
+// 100 chars displaying a custom error message.
+let equals100CharsCustom = 
+  Validators.String.equalsLen 100 (sprintf "%s must be 100 chars") "fieldName"
+
+equals100CharsCustom "validus" // ValidationResult<string>
 ```
 
 ## [`greaterThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L136)
@@ -225,9 +267,16 @@ open Validus
 // Define a validator which checks if a string is greater than
 // 100 chars displaying the standard error message.
 let greaterThan100Chars = 
-  Validators.Default.String.greaterThanLen 100 "field"
+  Validators.Default.String.greaterThanLen 100 "fieldName"
 
 greaterThan100Chars "validus" // ValidationResult<string>
+
+// Define a validator which checks if a string is greater than
+// 100 chars displaying a custom error message.
+let greaterThan100CharsCustom = 
+  Validators.String.greaterThanLen 100 (sprintf "%s must be greater than 100 chars") "fieldName"
+
+greaterThan100CharsCustom "validus" // ValidationResult<string>
 ```
 
 ## [`lessThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L141)
@@ -240,9 +289,16 @@ open Validus
 // Define a validator which checks if a string is less tha
 // 100 chars displaying the standard error message.
 let lessThan100Chars = 
-  Validators.Default.String.lessThanLen 100 "field"
+  Validators.Default.String.lessThanLen 100 "fieldName"
 
 lessThan100Chars "validus" // ValidationResult<string>
+
+// Define a validator which checks if a string is less tha
+// 100 chars displaying a custom error message.
+let lessThan100CharsCustom = 
+  Validators.String.lessThanLen 100 (sprintf "%s must be less than 100 chars") "fieldName"
+
+lessThan100CharsCustom "validus" // ValidationResult<string>
 ```
 
 ## [`empty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L131)
@@ -255,9 +311,16 @@ open Validus
 // Define a validator which checks if a string is empty
 // displaying the standard error message.
 let stringIsEmpty = 
-  Validators.Default.String.empty "field"
+  Validators.Default.String.empty "fieldName"
 
 stringIsEmpty "validus" // ValidationResult<string>
+
+// Define a validator which checks if a string is empty
+// displaying a custom error message.
+let stringIsEmptyCustom = 
+  Validators.String.empty (sprintf "%s must be empty") "fieldName"
+
+stringIsEmptyCustom "validus" // ValidationResult<string>
 ```
 
 ## [`notEmpty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L146)
@@ -270,9 +333,16 @@ open Validus
 // Define a validator which checks if a string is not empty
 // displaying the standard error message.
 let stringIsNotEmpty = 
-  Validators.Default.String.notEmpty "field"
+  Validators.Default.String.notEmpty "fieldName"
 
 stringIsNotEmpty "validus" // ValidationResult<string>
+
+// Define a validator which checks if a string is not empty
+// displaying a custom error message.
+let stringIsNotEmptyCustom = 
+  Validators.String.notEmpty (sprintf "%s must not be empty") "fieldName"
+
+stringIsNotEmptyCustom "validus" // ValidationResult<string>
 ```
 
 ## [`pattern`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L151) (Regular Expressions)
@@ -285,9 +355,16 @@ open Validus
 // Define a validator which checks if a string matches the 
 // provided regex displaying the standard error message.
 let stringIsChars = 
-  Validators.Default.String.pattern "[a-z]" "field"
+  Validators.Default.String.pattern "[a-z]" "fieldName"
 
 stringIsChars "validus" // ValidationResult<string>
+
+// Define a validator which checks if a string matches the 
+// provided regex displaying a custom error message.
+let stringIsCharsCustom = 
+  Validators.String.pattern "[a-z]" (sprintf "%s must follow the pattern [a-z]") "fieldName"
+
+stringIsCharsCustom "validus" // ValidationResult<string>
 ```
 
 ## Custom Validators
