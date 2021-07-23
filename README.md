@@ -390,7 +390,6 @@ let emailValidator =
 
 ```f#
 open Validus 
-open Validus.Operators
 
 let fooValidator =
     let fooRule : ValidationRule<string> = fun v -> v = "foo"
