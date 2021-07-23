@@ -14,7 +14,7 @@ let ``(TestValidator.betweenLen min max) should produce Success`` () =
     | Failure _ -> false
 
 [<Property>]
-let ``(TestValidator.betweenLen min max) should produce Failure`` () =           
+let ``(TestValidator.betweenLen min max) should produce Failure`` () =               
     match TestValidator.betweenLen 100 1000 "Test" testString with
     | Success _ -> false
     | Failure _ -> true

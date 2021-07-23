@@ -95,15 +95,8 @@ match validatePerson input with
 All of the built-in validators reside in the `Validators` module and follow a similar definition.
 
 ```fsharp
-// Produce a validation message based on a field name
-type ValidationMessage = string -> string
-
-// Produce a validation result based on a field name and result
+// Produce a validation result based on a field name and value
 type Validator<'a> = string -> 'a -> ValidationResult<'a>
-
-// Given 'a value, and validtion message produce 
-// a ready to use validator for 'a
-'a -> ValidationMessage -> Validator<'a>
 ```
 
 > Note: Validators pre-populated with English-language default error messages reside within the `Validators.Default` module.
@@ -294,19 +287,27 @@ stringIsChars "validus" // ValidationResult<string>
 
 Custom validators can be created by combining built-in validators together using `Validator.compose`, or the `<+>` infix operator, as well as creating bespoke validator's using `Validator.create`.
 
+### Combining built-in validators
+
 ```f#
 open Validus 
 open Validus.Operators
 
-// Combining built-in validators
 let emailValidator = 
     Validators.Default.String.betweenLen 8 512
-    <+> Validators.Default.String.pattern "[^@]+@[^\.]+\..+"
+    <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (sprintf "%s must be a valid email")
 
-let email = "fake@test.com"
-let emailResult = emailValidator "Login email" email 
+"fake@test.com"
+|> emailValidator "Login email" 
+// Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
+```
 
-// Creating a custom validator 
+### Creating bespoke validator's
+
+```f#
+open Validus 
+open Validus.Operators
+
 let fooValidator =
     let fooRule : ValidationRule<string> = fun v -> v = "foo"
     let fooMessage = sprintf "%s must be a string that matches 'foo'"
