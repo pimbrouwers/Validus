@@ -2,6 +2,11 @@
 
 open System
 
+
+// ------------------------------------------------
+// Common
+// ------------------------------------------------
+
 /// A mapping of fields and errors
 type ValidationErrors = private ValidationErrors of Map<string, string list>
 
@@ -90,22 +95,10 @@ module ValidationResult =
         | Failure e, _                 -> Failure e
         | _, Failure e                 -> Failure e
 
-/// Functions for Validator type
-module Validator =     
-    /// Combine two Validators
-    let compose (v1 : Validator<'a>) (v2 : Validator<'a>) : Validator<'a> =
-        fun (field : string) (value : 'a) ->            
-            match v1 field value, v2 field value with
-            | Success a, Success _   -> Success a
-            | Failure e, Success _   -> Failure e
-            | Success _, Failure e   -> Failure e
-            | Failure e1, Failure e2 -> Failure (ValidationErrors.merge e1 e2)                           
 
-    /// Create a new Validator
-    let create (message : ValidationMessage) (rule : ValidationRule<'a>) : Validator<'a> = 
-        fun (field : string) (value : 'a) ->
-            let error = ValidationErrors.create field [ message field ]
-            ValidationResult.create (rule value) value error
+// ------------------------------------------------
+// Validators
+// ------------------------------------------------
 
 /// Validation rules
 module ValidationRule =
@@ -144,6 +137,23 @@ module ValidationRule =
 
     let pattern (pattern : string) : ValidationRule<string> =
         fun v -> Text.RegularExpressions.Regex.IsMatch(v, pattern)
+
+/// Functions for Validator type
+module Validator =     
+    /// Combine two Validators
+    let compose (v1 : Validator<'a>) (v2 : Validator<'a>) : Validator<'a> =
+        fun (field : string) (value : 'a) ->            
+            match v1 field value, v2 field value with
+            | Success a, Success _   -> Success a
+            | Failure e, Success _   -> Failure e
+            | Success _, Failure e   -> Failure e
+            | Failure e1, Failure e2 -> Failure (ValidationErrors.merge e1 e2)                           
+
+    /// Create a new Validator
+    let create (message : ValidationMessage) (rule : ValidationRule<'a>) : Validator<'a> = 
+        fun (field : string) (value : 'a) ->
+            let error = ValidationErrors.create field [ message field ]
+            ValidationResult.create (rule value) value error
 
 /// Validation functions for prim itive types
 module Validators = 
@@ -224,28 +234,28 @@ module Validators =
             let rule = ValidationRule.pattern pattern
             Validator.create message rule
 
-    /// System.DateTime validators
+    /// DateTime validators
     let DateTime = ComparisonValidator<DateTime>()
     
-    /// System.DateTimeOffset validators
+    /// DateTimeOffset validators
     let DateTimeOffset = ComparisonValidator<DateTimeOffset>()
 
-    /// Microsoft.FSharp.Core.decimal validators
+    /// decimal validators
     let Decimal = ComparisonValidator<decimal>()
 
-    /// Microsoft.FSharp.Core.float  validators
+    /// float  validators
     let Float = ComparisonValidator<float>()
 
-    /// Microsoft.FSharp.Core.int32 validators
+    /// int32 validators
     let Int = ComparisonValidator<int>()    
 
-    /// Microsoft.FSharp.Core.16 validators
+    /// int16 validators
     let Int16 = ComparisonValidator<int16>()
 
-    /// Microsoft.FSharp.Core.int64 validators
+    /// int64 validators
     let Int64 = ComparisonValidator<int64>()
 
-    /// Microsoft.FSharp.Core.string validators
+    /// string validators
     let String = StringValidator()
 
     /// System.TimeSpan validators
@@ -299,32 +309,37 @@ module Validators =
         let required (validator : Validator<'a>) (field : string) (value : 'a option) : ValidationResult<'a> =  
             required validator (fun field -> sprintf "%s is required" field) field value
 
-        /// System.DateTime validators with the default error messages
+        /// DateTime validators with the default error messages
         let DateTime = DefaultComparisonValidator<DateTime>(DateTime)
         
-        /// System.DateTimeOffset validators with the default error messages
+        /// DateTimeOffset validators with the default error messages
         let DateTimeOffset = DefaultComparisonValidator<DateTimeOffset>(DateTimeOffset)
         
-        /// Microsoft.FSharp.Core.decimal validators with the default error messages
+        /// decimal validators with the default error messages
         let Decimal = DefaultComparisonValidator<decimal>(Decimal)
         
-        /// Microsoft.FSharp.Core.float validators with the default error messages
+        /// float validators with the default error messages
         let Float = DefaultComparisonValidator<float>(Float)
         
-        /// Microsoft.FSharp.Core.int32 validators with the default error messages
+        /// int32 validators with the default error messages
         let Int = DefaultComparisonValidator<int>(Int) 
         
-        /// Microsoft.FSharp.Core.16 validators with the default error messages
+        /// int16 validators with the default error messages
         let Int16 = DefaultComparisonValidator<int16>(Int16)
         
-        /// Microsoft.FSharp.Core.int64 validators with the default error messages
+        /// int64 validators with the default error messages
         let Int64 = DefaultComparisonValidator<int64>(Int64)
         
-        /// Microsoft.FSharp.Core.string validators with the default error messages
+        /// string validators with the default error messages
         let String = DefaultStringValidator(String)
         
         /// System.TimeSpan validators with the default error messages
         let TimeSpan = DefaultComparisonValidator<TimeSpan>(TimeSpan)
+
+
+// ------------------------------------------------
+// Operators
+// ------------------------------------------------
 
 /// Custom operators for ValidationResult
 module Operators =
@@ -336,6 +351,11 @@ module Operators =
 
     /// Alias for Validator.compose
     let (<+>) = Validator.compose
+
+
+// ------------------------------------------------
+// Builder
+// ------------------------------------------------
 
 /// ValidationResult Builder
 type ValidationResultBuilder() = 

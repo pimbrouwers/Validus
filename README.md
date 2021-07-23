@@ -15,13 +15,13 @@ Validus is a composable validation library for F#, with built-in validators for 
 
 ## Quick Start
 
-A common example of receiving input from an untrusted source `PersonInput` (i.e., HTML form submission), applying validation and producing a result based on success/failure.
+A common example of receiving input from an untrusted source `PersonDto` (i.e., HTML form submission), applying validation and producing a result based on success/failure.
 
 ```f#
 open Validus
 open Validus.Operators
 
-type PersonInput = 
+type PersonDto = 
     { FirstName : string
       LastName  : string
       Email     : string
@@ -32,26 +32,15 @@ type Name =
     { First : string
       Last : string }
 
-    static member Create first last = 
-        { First = first
-          Last  = last }
-
 type Person = 
     { Name      : Name
       Email     : string
       Age       : int option 
       StartDate : DateTime }
 
-    static member Create name email age startDate =
-        { Name      = name
-          Email     = email
-          Age       = age 
-          StartDate = startDate }   
-
-let validatePersonInput (input : PersonInput) = 
+let validatePersonDto (input : PersonDto) = 
     // Shared validator for first & last name
-    let nameValidator = 
-        Validators.Default.String.betweenLen 3 64
+    let nameValidator = Validators.Default.String.betweenLen 3 64
 
     // Composing multiple validators to form complex validation rules,
     // overriding default error message (Note: "Validators.String" as 
@@ -76,14 +65,17 @@ let validatePersonInput (input : PersonInput) =
       and! age = ageValidator "Age" input.Age
       and! startDate = dateValidator "Start Date" input.StartDate
 
-      let name = Name.Create first last
-      return Person.Create name email age startDate
+      return {
+          Name = { First = first; Last = last }
+          Email = email
+          Age = age
+          StartDate = startDate
     }
 
 //
 // Execution
 //
-let input : PersonInput = 
+let input : PersonDto = 
     { FirstName = "John"
       LastName  = "Doe"
       Email     = "john.doe@url.com"
