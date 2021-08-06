@@ -111,3 +111,52 @@ let ``Validation of record fails with computation expression`` () =
         let rMap = ValidationErrors.toMap r
         (rMap.ContainsKey "Name", rMap.ContainsKey "Age") |> should equal (true, true)
         rMap.["Age"] |> should equal ["Age must be greater than 3"])
+
+[<Fact>]
+let ``Validation of record fails and can be flattened`` () =           
+    let name = "Jo"    
+    let result : ValidationResult<string> =         
+        let nameValidator =             
+            Validators.Default.String.greaterThanLen 2
+            <+> Validators.Default.String.lessThanLen 100
+        
+        validate {
+            let! name = nameValidator "Name" name
+            return name
+        }
+    
+    let flattened = ValidationResult.flatten result     
+
+    flattened 
+    |> should be instanceOfType<Result<string, string list>>
+
+    flattened 
+    |> Result.mapError(fun r -> r |> should haveLength 1)
+
+[<Fact>]
+let ``Validation of multiple record fails and can be sequenced`` () =    
+    let names = [ "Jo"; "Jim"; "Lo"; "Bob" ]
+    
+    let nameValidator =             
+        Validators.Default.String.greaterThanLen 2
+        <+> Validators.Default.String.lessThanLen 100
+
+    let validator name =           
+        validate {
+            let! name = nameValidator "Name" name
+            return name
+        }
+
+    let result = 
+        names 
+        |> List.map validator
+
+    let sequenced =
+        result
+        |> ValidationResult.sequence
+
+    result 
+    |> should be instanceOfType<ValidationResult<string> seq>
+
+    sequenced
+    |> should be instanceOfType<ValidationResult<string seq>>

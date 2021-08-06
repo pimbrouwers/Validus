@@ -90,6 +90,21 @@ module ValidationResult =
         | Success r -> Ok r
         | Failure e -> Error e
 
+    /// Transform & flatten ValidationResult<'a> to Result<'a, string list>
+    let flatten (x : ValidationResult<'a>) : Result<'a, string list> = 
+        x 
+        |> toResult
+        |> Result.mapError ValidationErrors.toList
+
+    /// Convert ValidationResult<'a> seq into ValidationResult<'a seq>
+    let sequence (items : ValidationResult<'a> seq) : ValidationResult<'a seq> =
+        items
+        |> Seq.fold (fun acc i ->
+            match (i, acc) with
+            | Success i, Success acc -> Success (Seq.append acc (seq { i }))
+            | _, Failure e
+            | Failure e, _ -> Failure e) (Success Seq.empty)    
+
     /// Create a tuple form ValidationResult, if two ValidationResult objects are 
     /// in Success state, otherwise return failure
     let zip (r1 : ValidationResult<'a>) (r2 : ValidationResult<'b>) : ValidationResult<'a * 'b> =
