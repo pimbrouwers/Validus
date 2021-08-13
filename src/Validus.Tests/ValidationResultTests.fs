@@ -29,6 +29,36 @@ let ``ValidationResult.create produces Error result`` () =
     match ValidationResult.create false () expected with
     | Success _ -> ()
     | Failure e -> e |> should equal expected
+
+[<Fact>]
+let ``Can bind ValidationResults`` () =
+    let expected : FakeValidationRecord = { Name = "John"; Age = 1 }    
+
+    let result : ValidationResult<string> =         
+        let validator = 
+            Validators.Default.String.greaterThanLen 2
+            <+> Validators.Default.String.lessThanLen 100            
+
+        validate {
+            return! validator "Name" expected.Name
+        }
+
+    let result3 =
+        let rule name = if System.String.Equals(name, expected.Name) then true else false
+        let message = fun field -> sprintf "%s must equal %s" field expected.Name
+        let validator name =             
+            match Validator.create message rule "Name" name with 
+            | Success x -> Success {|Name = x |}
+            | Failure e -> Failure e
+
+        validate {
+            let! result = result
+            return! validator result
+        }
+    
+    result3    
+    |> ValidationResult.toResult
+    |> Result.bind (fun r -> Ok(r |> should equal {|Name = expected.Name|}))
     
 [<Fact>]
 let ``Validation of record succeeds using computation expression`` () =        

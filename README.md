@@ -91,6 +91,66 @@ match validatePersonDto input with
     |> Seq.iter (printfn "%s") 
 ```
 
+## Custom Validators
+
+Custom validators can be created by combining built-in validators together using `Validator.compose`, or the `<+>` infix operator, as well as creating bespoke validator's using `Validator.create`.
+
+### Combining built-in validators
+
+```f#
+open Validus 
+open Validus.Operators
+
+let emailValidator = 
+    Validators.Default.String.betweenLen 8 512
+    <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (sprintf "%s must be a valid email")
+
+"fake@test"
+|> emailValidator "Login email" 
+// Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
+```
+
+> Note: This is for demo purposes only, it likely isn't advisable to attempt to validate emails using a regular expression.
+
+### Creating a bespoke validator
+
+```f#
+open Validus 
+
+let fooValidator =
+    let fooRule : ValidationRule<string> = fun v -> v = "foo"
+    let fooMessage : ValidationMessage = sprintf "%s must be a string that matches 'foo'"
+    Validator.create fooMessage fooRule
+
+"bar"
+|> fooValidator "Test string" 
+// Outputs: [ "Test string", [ "Test string must be a string that matches 'foo'" ] ]
+```
+
+## Validating Collections
+
+Applying validator(s) to a set of items will result in a `ValidationResult<'a> seq`
+
+```fsharp
+open Validus 
+open Validus.Operators
+
+let emailValidator = 
+    Validators.Default.String.betweenLen 8 512
+    <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (sprintf "%s must be a valid email")
+
+let emails = [ "fake@test"; "bob@fsharp.org"; "x" ]
+
+let result =
+    emails
+    |> List.map (emailValidator "Login email")
+
+// result is a ValidationResult<string> seq
+
+// Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
+```
+
+
 ## Built-in Validators
 
 All of the built-in validators reside in the `Validators` module and follow a similar definition.
@@ -366,40 +426,6 @@ let stringIsCharsCustom =
   Validators.String.pattern "[a-z]" (sprintf "%s must follow the pattern [a-z]") "fieldName"
 
 stringIsCharsCustom "validus" // ValidationResult<string>
-```
-
-## Custom Validators
-
-Custom validators can be created by combining built-in validators together using `Validator.compose`, or the `<+>` infix operator, as well as creating bespoke validator's using `Validator.create`.
-
-### Combining built-in validators
-
-```f#
-open Validus 
-open Validus.Operators
-
-let emailValidator = 
-    Validators.Default.String.betweenLen 8 512
-    <+> Validators.String.pattern "[^@]+@[^\.]+\..+" (sprintf "%s must be a valid email")
-
-"fake@test.com"
-|> emailValidator "Login email" 
-// Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
-```
-
-### Creating a bespoke validator
-
-```f#
-open Validus 
-
-let fooValidator =
-    let fooRule : ValidationRule<string> = fun v -> v = "foo"
-    let fooMessage : ValidationMessage = sprintf "%s must be a string that matches 'foo'"
-    Validator.create fooMessage fooRule
-
-"bar"
-|> fooValidator "Test string" 
-// Outputs: [ "Test string", [ "Test string must be a string that matches 'foo'" ] ]
 ```
 
 ## Find a bug?

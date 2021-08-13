@@ -66,6 +66,12 @@ module ValidationResult =
     /// Convert regular value 'a into ValidationResult<'a>
     let retn (v : 'a) = Success v
 
+    /// Bind content of ValidationResult<'a> to 'a -> ValidationResult<'b>
+    let bind (resultFn : 'a -> ValidationResult<'b>) (result : ValidationResult<'a>)  : ValidationResult<'b> =
+        match result with 
+        | Success x -> resultFn x
+        | Failure e -> Failure e
+
     /// Unpack ValidationResult and feed into validation function
     let apply (resultFn : ValidationResult<'a -> 'b>) (result : ValidationResult<'a>) : ValidationResult<'b> =
         match resultFn, result with
@@ -363,21 +369,65 @@ module Validators =
 /// Custom operators for ValidationResult
 module Operators =
     /// Alias for ValidationResult.apply
-    let (<*>) = ValidationResult.apply
+    let inline (<*>) f x = ValidationResult.apply f x
 
     /// Alias for ValidationResult.map
-    let (<!>) = ValidationResult.map
+    let inline (<!>) f x = ValidationResult.map f x
+
+    /// Alias for ValidationResult.bind    
+    let inline (>>=) x f = ValidationResult.bind f x
 
     /// Alias for Validator.compose
-    let (<+>) = Validator.compose
+    let inline (<+>) v1 v2 = Validator.compose v1 v2
 
 
 // ------------------------------------------------
 // Builder
 // ------------------------------------------------
 
-/// ValidationResult Builder
-type ValidationResultBuilder() = 
+/// Computation expression for ValidationResult<_>.
+type ValidationResultBuilder() =
+    member _.Return (value) : ValidationResult<'a> = Success value
+
+    member _.ReturnFrom (result) : ValidationResult<'a> = result
+
+    member _.Delay(fn) : unit -> ValidationResult<'a> = fn
+
+    member _.Run(fn) : ValidationResult<'a> = fn ()
+    
+    member _.Bind (result, binder) = ValidationResult.bind binder result
+
+    member x.Zero () = x.Return ()
+
+    member x.TryWith (result, exceptionHandler) = 
+        try x.ReturnFrom (result)        
+        with ex -> exceptionHandler ex
+
+    member x.TryFinally (result, fn) = 
+        try x.ReturnFrom (result)        
+        finally fn ()
+
+    member x.Using (disposable : #IDisposable, fn) = 
+        x.TryFinally(fn disposable, fun _ -> 
+            match disposable with 
+            | null -> () 
+            | disposable -> disposable.Dispose()) 
+
+    member x.While (guard,  fn) =
+        if not (guard()) 
+            then x.Zero () 
+        else 
+            do fn () |> ignore
+            x.While(guard, fn)
+
+    member x.For (items : seq<_>, fn) = 
+        x.Using(items.GetEnumerator(), fun enum ->
+            x.While(enum.MoveNext, 
+                x.Delay (fun () -> fn enum.Current)))
+
+    member x.Combine (result, fn) = 
+        x.Bind(result, fun () -> fn ())
+
     member _.MergeSources (r1 : ValidationResult<'a>, r2 : ValidationResult<'b>) : ValidationResult<'a * 'b> =
         ValidationResult.zip r1 r2
 
