@@ -154,12 +154,6 @@ module ValidationRule =
     let lessThanLen (max : int) : ValidationRule<string> =
         fun str -> str.Length |> lessThan max
 
-    let empty : ValidationRule<string> =
-        fun str -> String.IsNullOrWhiteSpace(str)
-
-    let notEmpty : ValidationRule<string> =
-        fun str -> not(empty str)
-
     let pattern (pattern : string) : ValidationRule<string> =
         fun v -> Text.RegularExpressions.Regex.IsMatch(v, pattern)
 
@@ -233,7 +227,7 @@ module Validators =
 
         /// Validate string is null or ""
         member _.empty (message : ValidationMessage) : Validator<string> =            
-            Validator.create message ValidationRule.empty
+            Validator.create message String.IsNullOrWhiteSpace
 
         /// Validate string length is equal to provided value
         member _.equalsLen (len : int) (message : ValidationMessage) : Validator<string> =            
@@ -252,12 +246,24 @@ module Validators =
 
         /// Validate string is not null or ""
         member _.notEmpty (message : ValidationMessage) : Validator<string> =            
-            Validator.create message ValidationRule.notEmpty
+            Validator.create message (fun str -> not(String.IsNullOrWhiteSpace (str)))
 
         /// Validate string matches regular expression
         member _.pattern (pattern : string) (message : ValidationMessage) : Validator<string> =            
             let rule = ValidationRule.pattern pattern
             Validator.create message rule
+
+    type GuidValidator() =
+        inherit EqualityValidator<Guid> ()
+
+        /// Validate string is null or ""
+        member _.empty (message : ValidationMessage) : Validator<Guid> =            
+            Validator.create message (fun guid -> Guid.Empty = guid)
+
+        /// Validate string is not null or ""
+        member _.notEmpty (message : ValidationMessage) : Validator<Guid> =            
+            Validator.create message (fun guid -> Guid.Empty <> guid)
+
 
     /// DateTime validators
     let DateTime = ComparisonValidator<DateTime>()
@@ -268,8 +274,11 @@ module Validators =
     /// decimal validators
     let Decimal = ComparisonValidator<decimal>()
 
-    /// float  validators
+    /// float validators
     let Float = ComparisonValidator<float>()
+
+    /// System.Guid validators
+    let Guid = GuidValidator()
 
     /// int32 validators
     let Int = ComparisonValidator<int>()    
@@ -330,6 +339,15 @@ module Validators =
             /// Validate string matches regular expression with the default error message
             member _.pattern (pattern : string) = this.pattern pattern (fun field -> sprintf "%s must match pattern %s" field pattern)
     
+        type DefaultGuidValidator(this : GuidValidator) =
+            inherit DefaultEqualityValidator<Guid>(this)
+
+            /// Validate System.Guid is null or "" with the default error message
+            member _.empty = this.empty (fun field -> sprintf "%s must be empty" field)
+
+            /// Validate System.Guid is not null or "" with the default error message
+            member _.notEmpty = this.notEmpty (fun field -> sprintf "%s must not be empty" field)
+
         /// Execute validator if 'a is Some, otherwise return Failure with the default error message
         let required (validator : Validator<'a>) (field : string) (value : 'a option) : ValidationResult<'a> =  
             required validator (fun field -> sprintf "%s is required" field) field value

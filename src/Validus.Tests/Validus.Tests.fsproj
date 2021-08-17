@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="GuidValidatorTests.fs" />
     <Compile Include="ValidationErrorsTests.fs" />
     <Compile Include="ValidationResultTests.fs" />
     <Compile Include="EqualityValidatorTests.fs" />
