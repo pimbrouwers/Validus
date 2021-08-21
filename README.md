@@ -12,6 +12,7 @@ Validus is a composable validation library for F#, with built-in validators for 
 - Easily extended through [custom-validators](#custom-validators).
 - Infix [operators](#operators) to provide clean syntax or.
 - [Applicative computation expression](https://docs.microsoft.com/en-us/dotnet/fsharp/whats-new/fsharp-50#applicative-computation-expressions) (`validate { ... }`).
+- Excellent for creating [constrained-primitives](#constrained-primitives) (i.e., value objects).
 
 ## Quick Start
 
@@ -150,6 +151,56 @@ let result =
 // Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
 ```
 
+## Constrained Primitives
+
+It is generally a good idea to create [value objects](https://blog.ploeh.dk/2015/01/19/from-primitive-obsession-to-domain-modelling/) to represent individual data points that are more classified than the primitive types usually used to represent them. 
+
+### Example 1: Email Address Value Object
+
+A good example of this is an email address being represented as a `string` literal, as it exists in many programs. This is however a flawed approach in that the domain of an email address is more tightly scoped than a string will allow. For example, `""` or `null` are not valid emails.
+
+To address this, we can create a wrapper type to represent the email address which hides away the implementation details and provides a smart construct to produce the type. 
+
+```fsharp
+type Email = 
+    private { Email : string } 
+
+    override x.ToString () = x.Email
+    
+    static member Of field input =
+        let rule (x : string) =  
+            if x = "" then false 
+            else 
+                try 
+                    let addr = MailAddress(x)            
+                    if addr.Address = x then true
+                    else false
+                with 
+                | :? FormatException -> false
+
+        let message = sprintf "%s must be a valid email address"
+
+        input
+        |> Validator.create message rule field
+        |> ValidationResult.map (fun v -> { Email = v }) 
+```
+
+### Example 2: E164 Formatted Phone Number
+
+```fsharp
+type E164 = 
+    private { E164 : string } 
+
+    override x.ToString() = x.E164
+    
+    static member Of field input =
+        let e164Regex = @"^\+[1-9]\d{1,14}$"       
+        let message = sprintf "%s must be a valid E164 telephone number"
+
+        input
+        |> Validators.String.pattern e164Regex message field
+        |> ValidationResult.map (fun v -> { E164 = v })
+```
 
 ## Built-in Validators
 
