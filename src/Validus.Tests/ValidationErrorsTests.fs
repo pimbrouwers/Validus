@@ -5,10 +5,6 @@ open Validus
 open FsUnit.Xunit
 
 [<Fact>]
-let ``ValidationErrors.empty produces empty Map<string, string list>`` () =
-    ValidationErrors.empty |> ValidationErrors.toMap |> should equal Map.empty<string, string list>
-
-[<Fact>]
 let ``ValidationErrors.create produce Map<string, string list> from field and errors`` () =
     let expected = [ "fakeField1", [ "fake error message 1" ] ] |> Map.ofList
     let error = ValidationErrors.create "fakeField1" [ "fake error message 1" ]
