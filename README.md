@@ -119,8 +119,8 @@ let emailValidator =
 open Validus 
 
 let fooValidator =
-    let fooRule : ValidationRule<string> = fun v -> v = "foo"
-    let fooMessage : ValidationMessage = sprintf "%s must be a string that matches 'foo'"
+    let fooRule v = v = "foo"
+    let fooMessage = sprintf "%s must be a string that matches 'foo'"
     Validator.create fooMessage fooRule
 
 "bar"
@@ -208,7 +208,7 @@ All of the built-in validators reside in the `Validators` module and follow a si
 
 ```fsharp
 // Produce a validation result based on a field name and value
-type Validator<'a> = string -> 'a -> Result<'a, ValidationErrors>
+string -> 'a -> Result<'a, ValidationErrors>
 ```
 
 > Note: Validators pre-populated with English-language default error messages reside within the `Validators.Default` module.
