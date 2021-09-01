@@ -20,7 +20,7 @@
 
     <!-- NuGet config -->
     <PackageId>Validus</PackageId>
-    <PackageVersion>2.0.3</PackageVersion>
+    <PackageVersion>3.0.0</PackageVersion>
     <PackageTags>fsharp;functional;validation</PackageTags>
     <PackageProjectUrl>https://github.com/pimbrouwers/Validus</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
