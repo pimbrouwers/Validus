@@ -40,7 +40,7 @@ type Person =
       Age       : int option 
       StartDate : DateTime }
 
-let validatePersonDto (input : PersonDto) : ValidationResult<Person> = 
+let validatePersonDto (input : PersonDto) : Result<Person, ValidationErrors> = 
     // Shared validator for first & last name
     let nameValidator = 
         Validators.Default.String.betweenLen 3 64
@@ -130,7 +130,7 @@ let fooValidator =
 
 ## Validating Collections
 
-Applying validator(s) to a set of items will result in a `ValidationResult<'a> seq`
+Applying validator(s) to a set of items will result in a `Result<'a, ValidationErrors> seq`
 
 ```fsharp
 open Validus 
@@ -146,7 +146,7 @@ let result =
     emails
     |> List.map (emailValidator "Login email")
 
-// result is a ValidationResult<string> seq
+// result is a Result<string, ValidationErrors> seq
 
 // Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
 ```
@@ -182,7 +182,7 @@ type Email =
 
         input
         |> Validator.create message rule field
-        |> ValidationResult.map (fun v -> { Email = v }) 
+        |> Result.map (fun v -> { Email = v }) 
 ```
 
 ### Example 2: E164 Formatted Phone Number
@@ -199,7 +199,7 @@ type E164 =
 
         input
         |> Validators.String.pattern e164Regex message field
-        |> ValidationResult.map (fun v -> { E164 = v })
+        |> Result.map (fun v -> { E164 = v })
 ```
 
 ## Built-in Validators
@@ -208,7 +208,7 @@ All of the built-in validators reside in the `Validators` module and follow a si
 
 ```fsharp
 // Produce a validation result based on a field name and value
-type Validator<'a> = string -> 'a -> ValidationResult<'a>
+type Validator<'a> = string -> 'a -> Result<'a, ValidationErrors>
 ```
 
 > Note: Validators pre-populated with English-language default error messages reside within the `Validators.Default` module.
@@ -225,14 +225,14 @@ open Validus
 let equalsFoo = 
   Validators.Default.String.equals "foo" "fieldName"
 
-equalsFoo "bar" // ValidationResult<string>
+equalsFoo "bar" // Result<string, ValidationErrors>
 
 // Define a validator which checks if a string equals
 // "foo" displaying a custom error message (string -> string).
 let equalsFooCustom = 
   Validators.String.equals "foo" (sprintf "%s must equal the word 'foo'") "fieldName"
 
-equalsFooCustom "bar" // ValidationResult<string>
+equalsFooCustom "bar" // Result<string, ValidationErrors>
 ```
 
 ## [`notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
@@ -247,14 +247,14 @@ open Validus
 let notEqualsFoo = 
   Validators.Default.String.notEquals "foo" "fieldName"
 
-notEqualsFoo "bar" // ValidationResult<string>
+notEqualsFoo "bar" // Result<string, ValidationErrors>
 
 // Define a validator which checks if a string is not 
 // equal to "foo" displaying a custom error message (string -> string)
 let notEqualsFooCustom = 
   Validators.String.notEquals "foo" (sprintf "%s must not equal the word 'foo'") "fieldName"
 
-notEqualsFooCustom "bar" // ValidationResult<string>
+notEqualsFooCustom "bar" // Result<string, ValidationErrors>
 ```
 
 ## [`between`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L110) (inclusive)
@@ -269,14 +269,14 @@ open Validus
 let between1and100 = 
   Validators.Default.Int.between 1 100 "fieldName"
 
-between1and100 12 // ValidationResult<int>
+between1and100 12 // Result<int, ValidationErrors>
 
 // Define a validator which checks if an int is between
 // 1 and 100 (inclusive) displaying a custom error message.
 let between1and100Custom = 
   Validators.Int.between 1 100 (sprintf "%s must be between 1 and 100") "fieldName"
 
-between1and100Custom 12 // ValidationResult<int>
+between1and100Custom 12 // Result<int, ValidationErrors>
 ```
 
 ## [`greaterThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L114)
@@ -291,14 +291,14 @@ open Validus
 let greaterThan100 = 
   Validators.Default.Int.greaterThan 100 "fieldName"
 
-greaterThan100 12 // ValidationResult<int>
+greaterThan100 12 // Result<int, ValidationErrors>
 
 // Define a validator which checks if an int is greater than
 // 100 displaying a custom error message.
 let greaterThan100Custom = 
   Validators.Int.greaterThan 100 (sprintf "%s must be greater than 100") "fieldName"
 
-greaterThan100Custom 12 // ValidationResult<int>
+greaterThan100Custom 12 // Result<int, ValidationErrors>
 ```
 
 ## [`lessThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L118)
@@ -313,14 +313,14 @@ open Validus
 let lessThan100 = 
   Validators.Default.Int.lessThan 100 "fieldName"
 
-lessThan100 12 // ValidationResult<int>
+lessThan100 12 // Result<int, ValidationErrors>
 
 // Define a validator which checks if an int is less than
 // 100 displaying a custom error message.
 let lessThan100Custom = 
   Validators.Int.lessThan 100 (sprintf "%s must be less than 100") "fieldName"
 
-lessThan100Custom 12 // ValidationResult<int>
+lessThan100Custom 12 // Result<int, ValidationErrors>
 ```
 
 ### String specific validators
@@ -337,14 +337,14 @@ open Validus
 let between1and100Chars = 
   Validators.Default.String.betweenLen 1 100 "fieldName"
 
-between1and100Chars "validus" // ValidationResult<string>
+between1and100Chars "validus" // Result<string, ValidationErrors>
 
 // Define a validator which checks if a string is between
 // 1 and 100 chars displaying a custom error message.
 let between1and100CharsCustom = 
   Validators.String.betweenLen 1 100 (sprintf "%s must be between 1 and 100 chars") "fieldName"
 
-between1and100CharsCustom "validus" // ValidationResult<string>
+between1and100CharsCustom "validus" // Result<string, ValidationErrors>
 ```
 
 ## [`equalsLen`](https://github.com/pimbrouwers/Validus/blob/e555cc01f41f2d717ecec32fcb46616dca7243e8/src/Validus/Validus.fs#L219)
@@ -359,14 +359,14 @@ open Validus
 let equals100Chars = 
   Validators.Default.String.equalsLen 100 "fieldName"
 
-equals100Chars "validus" // ValidationResult<string>
+equals100Chars "validus" // Result<string, ValidationErrors>
 
 // Define a validator which checks if a string is equals to
 // 100 chars displaying a custom error message.
 let equals100CharsCustom = 
   Validators.String.equalsLen 100 (sprintf "%s must be 100 chars") "fieldName"
 
-equals100CharsCustom "validus" // ValidationResult<string>
+equals100CharsCustom "validus" // Result<string, ValidationErrors>
 ```
 
 ## [`greaterThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L136)
@@ -381,14 +381,14 @@ open Validus
 let greaterThan100Chars = 
   Validators.Default.String.greaterThanLen 100 "fieldName"
 
-greaterThan100Chars "validus" // ValidationResult<string>
+greaterThan100Chars "validus" // Result<string, ValidationErrors>
 
 // Define a validator which checks if a string is greater than
 // 100 chars displaying a custom error message.
 let greaterThan100CharsCustom = 
   Validators.String.greaterThanLen 100 (sprintf "%s must be greater than 100 chars") "fieldName"
 
-greaterThan100CharsCustom "validus" // ValidationResult<string>
+greaterThan100CharsCustom "validus" // Result<string, ValidationErrors>
 ```
 
 ## [`lessThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L141)
@@ -403,14 +403,14 @@ open Validus
 let lessThan100Chars = 
   Validators.Default.String.lessThanLen 100 "fieldName"
 
-lessThan100Chars "validus" // ValidationResult<string>
+lessThan100Chars "validus" // Result<string, ValidationErrors>
 
 // Define a validator which checks if a string is less tha
 // 100 chars displaying a custom error message.
 let lessThan100CharsCustom = 
   Validators.String.lessThanLen 100 (sprintf "%s must be less than 100 chars") "fieldName"
 
-lessThan100CharsCustom "validus" // ValidationResult<string>
+lessThan100CharsCustom "validus" // Result<string, ValidationErrors>
 ```
 
 ## [`empty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L131)
@@ -425,14 +425,14 @@ open Validus
 let stringIsEmpty = 
   Validators.Default.String.empty "fieldName"
 
-stringIsEmpty "validus" // ValidationResult<string>
+stringIsEmpty "validus" // Result<string, ValidationErrors>
 
 // Define a validator which checks if a string is empty
 // displaying a custom error message.
 let stringIsEmptyCustom = 
   Validators.String.empty (sprintf "%s must be empty") "fieldName"
 
-stringIsEmptyCustom "validus" // ValidationResult<string>
+stringIsEmptyCustom "validus" // Result<string, ValidationErrors>
 ```
 
 ## [`notEmpty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L146)
@@ -447,14 +447,14 @@ open Validus
 let stringIsNotEmpty = 
   Validators.Default.String.notEmpty "fieldName"
 
-stringIsNotEmpty "validus" // ValidationResult<string>
+stringIsNotEmpty "validus" // Result<string, ValidationErrors>
 
 // Define a validator which checks if a string is not empty
 // displaying a custom error message.
 let stringIsNotEmptyCustom = 
   Validators.String.notEmpty (sprintf "%s must not be empty") "fieldName"
 
-stringIsNotEmptyCustom "validus" // ValidationResult<string>
+stringIsNotEmptyCustom "validus" // Result<string, ValidationErrors>
 ```
 
 ## [`pattern`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L151) (Regular Expressions)
@@ -469,14 +469,14 @@ open Validus
 let stringIsChars = 
   Validators.Default.String.pattern "[a-z]" "fieldName"
 
-stringIsChars "validus" // ValidationResult<string>
+stringIsChars "validus" // Result<string, ValidationErrors>
 
 // Define a validator which checks if a string matches the 
 // provided regex displaying a custom error message.
 let stringIsCharsCustom = 
   Validators.String.pattern "[a-z]" (sprintf "%s must follow the pattern [a-z]") "fieldName"
 
-stringIsCharsCustom "validus" // ValidationResult<string>
+stringIsCharsCustom "validus" // Result<string, ValidationErrors>
 ```
 
 ## Find a bug?
