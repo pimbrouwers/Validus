@@ -37,6 +37,7 @@
     <PackageReference Update="FSharp.Core" Version="4.5.2" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="*.fsproj; *.fs; *.js;" Exclude="**\*.fs.js" PackagePath="fable/" />
     <Compile Include="Validus.fs" />
   </ItemGroup>
 
