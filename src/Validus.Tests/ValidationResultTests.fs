@@ -25,7 +25,7 @@ let ``Can bind ValidationResults`` () =
         let validator =
             Validators.Default.String.greaterThanLen 2
             <+> Validators.Default.String.lessThanLen 100
-                        
+
 
         validate {
             return! validator "Name" expected.Name
@@ -73,8 +73,11 @@ let ``Validation of record with option succeeds`` () =
             Validators.Default.String.greaterThanLen 2 "Name" expected.Name
 
         let ageValidator =
+            let validator =
+                Validators.Default.Int.greaterThan 0 <+> Validators.Default.Int.lessThan 100
+
             Validators.optional
-                (Validators.Default.Int.greaterThan 0 <+> Validators.Default.Int.lessThan 100)
+                validator
                 "Age"
                 expected.Age
 
@@ -124,3 +127,29 @@ let ``Validation of record fails with computation expression`` () =
         let rMap = ValidationErrors.toMap r
         (rMap.ContainsKey "Name", rMap.ContainsKey "Age") |> should equal (true, true)
         rMap.["Age"] |> should equal ["Age must be greater than 3"])
+
+type Str16 =
+    private { Str16 : string }
+
+    override x.ToString () = x.Str16
+
+    static member Of field input =
+        input
+        |> Validators.Default.String.betweenLen 2 16 field
+        |> Result.map (fun v -> { Str16 = v.Trim() })
+
+[<Fact>]
+let ``Validation supports transformation at the point of marking as optional`` () =
+    let name = Some "pim"
+    let result = Validators.optional Str16.Of "First Name" name
+
+    result
+    |> Result.bind (fun r -> Ok (r |> should equal (Some { Str16 = "pim" })))
+
+[<Fact>]
+let ``Validation supports transformation at the point of marking as required`` () =
+    let name = Some "pim"
+    let result = Validators.Default.required Str16.Of "First Name" name
+
+    result
+    |> Result.bind (fun r -> Ok (r |> should equal { Str16 = "pim" }))

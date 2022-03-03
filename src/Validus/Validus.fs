@@ -135,20 +135,20 @@ module Validator =
 module Validators =
     /// Execute validator if 'a is Some, otherwise return Ok 'a
     let optional
-        (validator : string -> 'a -> Result<'a, ValidationErrors>)
+        (validator : string -> 'a -> Result<'b, ValidationErrors>)
         (field : string) (value : 'a option)
-        : Result<'a option, ValidationErrors> =
+        : Result<'b option, ValidationErrors> =
         match value with
         | Some v -> validator field v |> Result.map (fun v -> Some v)
-        | None   -> Ok value
+        | None   -> Ok None
 
     /// Execute validator if 'a is Some, otherwise return Failure
     let required
-        (validator : string -> 'a -> Result<'a, ValidationErrors>)
+        (validator : string -> 'a -> Result<'b, ValidationErrors>)
         (message : string -> string)
         (field : string)
         (value : 'a option)
-        : Result<'a, ValidationErrors> =
+        : Result<'b, ValidationErrors> =
         match value with
         | Some v -> validator field v
         | None   -> Error (ValidationErrors.create field [ message field ])
@@ -302,7 +302,16 @@ module Validators =
     /// System.TimeSpan validators
     let TimeSpan = ComparisonValidator<TimeSpan>()
 
-    module Default =
+    module Default =        
+        /// Execute validator if 'a is Some, otherwise return Failure with the 
+        /// default error message
+        let required 
+            (validator : string -> 'a -> Result<'b, ValidationErrors>) 
+            (field : string) 
+            (value : 'a option) =
+            let msg field = sprintf "%s is required" field
+            required validator msg field value
+
         type DefaultEqualityValidator<'a when 'a
             : equality>(x : EqualityValidator<'a>) =
             /// Value is equal to provided value with the default error message
@@ -402,15 +411,6 @@ module Validators =
             member _.notEmpty = 
                 let msg field = sprintf "%s must not be empty" field
                 this.notEmpty msg
-
-        /// Execute validator if 'a is Some, otherwise return Failure with the 
-        /// default error message
-        let required 
-            (validator : string -> 'a -> Result<'a, ValidationErrors>) 
-            (field : string) 
-            (value : 'a option) =
-            let msg field = sprintf "%s is required" field
-            required validator msg field value
 
         /// DateTime validators with the default error messages
         let DateTime = DefaultComparisonValidator<DateTime>(DateTime)
