@@ -153,7 +153,7 @@ let result =
 // Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
 ```
 
-## Constrained Primitives
+## Constrained Primitives (i.e., value types/objects)
 
 It is generally a good idea to create [value objects](https://blog.ploeh.dk/2015/01/19/from-primitive-obsession-to-domain-modelling/) to represent individual data points that are more classified than the primitive types usually used to represent them. 
 
