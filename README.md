@@ -113,7 +113,7 @@ let emailValidator =
 // Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
 ```
 
-> Note: This is for demo purposes only, it likely isn't advisable to attempt to validate emails using a regular expression.
+> Note: This is for demo purposes only, it likely isn't advisable to attempt to validate emails using a regular expression. Instead, use [System.Net.MailAddress](#example-1-email-address-value-object).
 
 ### Creating a bespoke validator
 
