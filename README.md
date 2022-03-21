@@ -74,9 +74,11 @@ let validatePersonDto (input : PersonDto) : Result<Person, ValidationErrors> =
           Age = age
           StartDate = startDate }
     }
+```
 
-//
-// Execution
+And, using the validator:
+
+```fsharp
 let input : PersonDto = 
     { FirstName = "John"
       LastName  = "Doe"
