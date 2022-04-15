@@ -13,7 +13,7 @@ type ValidationErrors = private { ValidationErrors : Map<string, string list> } 
 let inline private validationErrors x = { ValidationErrors = x }
 
 /// Functions for ValidationErrors type
-module ValidationErrors =
+module ValidationErrors =    
     /// Create a new ValidationErrors instance from a field  and errors list
     let create (field : string) (errors : string list) : ValidationErrors =
         [ field, errors ] |> Map.ofList |> validationErrors
@@ -92,19 +92,19 @@ module ValidationRule =
     let lessThan<'a when 'a : comparison> (max : 'a) : 'a -> bool =
         fun v -> v < max
 
-    let betweenLen (min : int) (max : int) : string -> bool =
-        fun str -> str.Length |> between min max
+    let inline betweenLen (min : int) (max : int) (x : ^a) : bool =
+        ((^a : (member Length : int) x) |> between min max)
 
-    let equalsLen (len : int) : string -> bool =
-        fun str -> str.Length |> equality len
+    let inline equalsLen (len : int) (x : ^a) : bool =
+        ((^a : (member Length : int) x) |> equality len)
 
-    let greaterThanLen (min : int) : string -> bool =
-        fun str -> str.Length |> greaterThan min
+    let inline greaterThanLen (min : int) (x : ^a) : bool =
+        ((^a : (member Length : int) x) |> greaterThan min)
 
-    let lessThanLen (max : int) : string -> bool =
-        fun str -> str.Length |> lessThan max
+    let inline lessThanLen (max : int) (x : ^a) : bool =
+        ((^a : (member Length : int) x) |> lessThan max)
 
-    let pattern (pattern : string) : string -> bool =
+    let strPattern (pattern : string) : string -> bool =
         fun v -> Text.RegularExpressions.Regex.IsMatch(v, pattern)
 
 /// Functions for Validator type
@@ -131,28 +131,8 @@ module Validator =
             if rule value then Ok value
             else error |> Error
 
-/// Validation functions for prim itive types
+/// Validation functions
 module Validators =
-    /// Execute validator if 'a is Some, otherwise return Ok 'a
-    let optional
-        (validator : string -> 'a -> Result<'b, ValidationErrors>)
-        (field : string) (value : 'a option)
-        : Result<'b option, ValidationErrors> =
-        match value with
-        | Some v -> validator field v |> Result.map (fun v -> Some v)
-        | None   -> Ok None
-
-    /// Execute validator if 'a is Some, otherwise return Failure
-    let required
-        (validator : string -> 'a -> Result<'b, ValidationErrors>)
-        (message : string -> string)
-        (field : string)
-        (value : 'a option)
-        : Result<'b, ValidationErrors> =
-        match value with
-        | Some v -> validator field v
-        | None   -> Error (ValidationErrors.create field [ message field ])
-
     type EqualityValidator<'a when 'a : equality>() =
         /// Value is equal to provided value
         member _.equals
@@ -253,7 +233,7 @@ module Validators =
             (pattern : string)
             (message : string -> string)
             : string -> string -> Result<string, ValidationErrors> =
-            let rule = ValidationRule.pattern pattern
+            let rule = ValidationRule.strPattern pattern
             Validator.create message rule
 
     type GuidValidator() =
@@ -271,6 +251,94 @@ module Validators =
             : string -> Guid -> Result<Guid, ValidationErrors> =
             Validator.create message (fun guid -> Guid.Empty <> guid)
 
+    type ListValidator<'a when 'a : equality>() = 
+        inherit EqualityValidator<'a list> ()
+
+        /// Validate list is between length (inclusive)
+        member _.betweenLen
+            (min : int)
+            (max : int)
+            (message : string -> string)
+            (field : string)
+            (input : ('a) list)
+            : Result<'a list, ValidationErrors> =
+            let rule = ValidationRule.betweenLen min max
+            Validator.create message rule field input
+
+        /// Validate list is empty
+        member _.empty
+            (message : string -> string)
+            (field : string)
+            (input : ('a) list)
+            : Result<'a list, ValidationErrors> =
+            Validator.create message List.isEmpty field input
+
+        /// Validate list length is equal to provided value
+        member _.equalsLen
+            (len : int)
+            (message : string -> string)
+            (field : string)
+            (input : ('a) list)
+            : Result<'a list, ValidationErrors> =
+            let rule = ValidationRule.equalsLen len
+            Validator.create message rule field input
+
+        /// Validate list length is greater than provided value
+        member _.greaterThanLen
+            (min : int)
+            (message : string -> string)
+            (field : string)
+            (input : ('a) list)
+            : Result<'a list, ValidationErrors> =
+            let rule = ValidationRule.greaterThanLen min
+            Validator.create message rule field input
+
+        /// Validate list length is less than provided value
+        member _.lessThanLen
+            (max : int)
+            (message : string -> string)
+            (field : string)
+            (input : ('a) list)
+            : Result<'a list, ValidationErrors> =
+            let rule = ValidationRule.lessThanLen max
+            Validator.create message rule field input
+
+        /// Validate list is not empty
+        member _.notEmpty
+            (message : string -> string)
+            (field : string)
+            (input : ('a) list)
+            : Result<'a list, ValidationErrors> =
+            Validator.create message (fun x -> not(List.isEmpty x)) field input
+            
+        /// Validate list contains element matching predicate
+        member _.exists
+            (message : string -> string)
+            (field : string)
+            (predicate : 'a -> bool)
+            (input : ('a) list)
+            : Result<('a) list, ValidationErrors> =            
+            Validator.create message (List.exists predicate) field input
+
+    /// Execute validator if 'a is Some, otherwise return Ok 'a
+    let optional
+        (validator : string -> 'a -> Result<'b, ValidationErrors>)
+        (field : string) (value : 'a option)
+        : Result<'b option, ValidationErrors> =
+        match value with
+        | Some v -> validator field v |> Result.map (fun v -> Some v)
+        | None   -> Ok None
+
+    /// Execute validator if 'a is Some, otherwise return Failure
+    let required
+        (validator : string -> 'a -> Result<'b, ValidationErrors>)
+        (message : string -> string)
+        (field : string)
+        (value : 'a option)
+        : Result<'b, ValidationErrors> =
+        match value with
+        | Some v -> validator field v
+        | None   -> Error (ValidationErrors.create field [ message field ])
 
     /// DateTime validators
     let DateTime = ComparisonValidator<DateTime>()
@@ -302,16 +370,10 @@ module Validators =
     /// System.TimeSpan validators
     let TimeSpan = ComparisonValidator<TimeSpan>()
 
-    module Default =        
-        /// Execute validator if 'a is Some, otherwise return Failure with the 
-        /// default error message
-        let required 
-            (validator : string -> 'a -> Result<'b, ValidationErrors>) 
-            (field : string) 
-            (value : 'a option) =
-            let msg field = sprintf "%s is required" field
-            required validator msg field value
+    /// List validators
+    let List<'a when 'a : equality> = ListValidator<'a>()
 
+    module Default =        
         type DefaultEqualityValidator<'a when 'a
             : equality>(x : EqualityValidator<'a>) =
             /// Value is equal to provided value with the default error message
@@ -411,6 +473,15 @@ module Validators =
             member _.notEmpty = 
                 let msg field = sprintf "%s must not be empty" field
                 this.notEmpty msg
+
+        /// Execute validator if 'a is Some, otherwise return Failure with the 
+        /// default error message
+        let required 
+            (validator : string -> 'a -> Result<'b, ValidationErrors>) 
+            (field : string) 
+            (value : 'a option) =
+            let msg field = sprintf "%s is required" field
+            required validator msg field value
 
         /// DateTime validators with the default error messages
         let DateTime = DefaultComparisonValidator<DateTime>(DateTime)

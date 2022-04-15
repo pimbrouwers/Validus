@@ -32,7 +32,8 @@ let ``(TestValidator.empty) should produce Failure`` () =
     | Error _ -> true
 
 [<Property>]
-let ``(TestValidator.equalsLen len) should produce Success`` () =               
+let ``(TestValidator.equalsLen len) should produce Success`` () =     
+    Validators.List.exists (sprintf "%s") "dsa" (fun (x : int) -> x = 1) [2;3;4]
     match TestValidator.equalsLen 7 "Test" testString with
     | Ok _ -> true
     | Error _ -> false
