@@ -93,16 +93,16 @@ module ValidationRule =
         fun v -> v < max
 
     let inline betweenLen (min : int) (max : int) (x : ^a) : bool =
-        ((^a : (member Length : int) x) |> between min max)
+        (between min max (^a : (member Length : int) x))
 
     let inline equalsLen (len : int) (x : ^a) : bool =
-        ((^a : (member Length : int) x) |> equality len)
+        (equality len (^a : (member Length : int) x))
 
     let inline greaterThanLen (min : int) (x : ^a) : bool =
-        ((^a : (member Length : int) x) |> greaterThan min)
+        (greaterThan min (^a : (member Length : int) x))
 
     let inline lessThanLen (max : int) (x : ^a) : bool =
-        ((^a : (member Length : int) x) |> lessThan max)
+        (lessThan max (^a : (member Length : int) x))
 
     let strPattern (pattern : string) : string -> bool =
         fun v -> Text.RegularExpressions.Regex.IsMatch(v, pattern)
@@ -138,17 +138,21 @@ module Validators =
         member _.equals
             (equalTo : 'a)
             (message : string -> string)
-            : string -> 'a -> Result<'a, ValidationErrors> =
+            (field : string)
+            (input : 'a)
+            : Result<'a, ValidationErrors> =
             let rule = ValidationRule.equality equalTo
-            Validator.create message rule
+            Validator.create message rule field input
 
         /// Value is not equal to provided value
         member _.notEquals
             (notEqualTo : 'a)
             (message : string -> string)
-            : string -> 'a -> Result<'a, ValidationErrors> =
+            (field : string)
+            (input : 'a)
+            : Result<'a, ValidationErrors> =
             let rule = ValidationRule.inequality notEqualTo
-            Validator.create message rule
+            Validator.create message rule field input
 
     type ComparisonValidator<'a when 'a : comparison>() =
         inherit EqualityValidator<'a>()
@@ -158,25 +162,31 @@ module Validators =
             (min : 'a)
             (max : 'a)
             (message : string -> string)
-            : string -> 'a -> Result<'a, ValidationErrors> =
+            (field : string)
+            (input : 'a)
+            : Result<'a, ValidationErrors> =
             let rule = ValidationRule.between min max
-            Validator.create message rule
+            Validator.create message rule field input
 
         /// Value is greater than provided min
         member _.greaterThan
             (min : 'a)
             (message : string -> string)
-            : string -> 'a -> Result<'a, ValidationErrors> =
+            (field : string)
+            (input : 'a)
+            : Result<'a, ValidationErrors> =
             let rule = ValidationRule.greaterThan min
-            Validator.create message rule
+            Validator.create message rule field input
 
         /// Value is less than provided max
         member _.lessThan
             (max : 'a)
             (message : string -> string)
-            : string -> 'a -> Result<'a, ValidationErrors> =
+            (field : string)
+            (input : 'a)
+            : Result<'a, ValidationErrors> =
             let rule = ValidationRule.lessThan max
-            Validator.create message rule
+            Validator.create message rule field input
 
     type StringValidator() =
         inherit EqualityValidator<string>()
@@ -186,55 +196,71 @@ module Validators =
             (min : int)
             (max : int)
             (message : string -> string)
-            : string -> string -> Result<string, ValidationErrors> =
+            (field : string)
+            (input : string)
+            : Result<string, ValidationErrors> =
             let rule = ValidationRule.betweenLen min max
-            Validator.create message rule
+            Validator.create message rule field input
 
         /// Validate string is null or ""
         member _.empty
             (message : string -> string)
-            : string -> string -> Result<string, ValidationErrors> =
-            Validator.create message String.IsNullOrWhiteSpace
+            (field : string)
+            (input : string)
+            : Result<string, ValidationErrors> =
+            Validator.create message String.IsNullOrWhiteSpace field input
 
         /// Validate string length is equal to provided value
         member _.equalsLen
             (len : int)
             (message : string -> string)
-            : string -> string -> Result<string, ValidationErrors> =
+            (field : string)
+            (input : string)
+            : Result<string, ValidationErrors> =
             let rule = ValidationRule.equalsLen len
-            Validator.create message rule
+            Validator.create message rule field input
 
         /// Validate string length is greater than provided value
         member _.greaterThanLen
             (min : int)
             (message : string -> string)
-            : string -> string -> Result<string, ValidationErrors> =
+            (field : string)
+            (input : string)
+            : Result<string, ValidationErrors> =
             let rule = ValidationRule.greaterThanLen min
-            Validator.create message rule
+            Validator.create message rule field input
 
         /// Validate string length is less than provided value
         member _.lessThanLen
             (max : int)
             (message : string -> string)
-            : string -> string -> Result<string, ValidationErrors> =
+            (field : string)
+            (input : string)
+            : Result<string, ValidationErrors> =
             let rule = ValidationRule.lessThanLen max
-            Validator.create message rule
+            Validator.create message rule field input
 
         /// Validate string is not null or ""
         member _.notEmpty
             (message : string -> string)
-            : string -> string -> Result<string, ValidationErrors> =
+            (field : string)
+            (input : string)
+            : Result<string, ValidationErrors> =
             Validator.create
                 message
                 (fun str -> not(String.IsNullOrWhiteSpace (str)))
+                field
+                input
 
         /// Validate string matches regular expression
         member _.pattern
             (pattern : string)
             (message : string -> string)
-            : string -> string -> Result<string, ValidationErrors> =
+            (field : string)
+            (input : string)
+            : Result<string, ValidationErrors> =
             let rule = ValidationRule.strPattern pattern
-            Validator.create message rule
+            Validator.create message rule field input
 
     type GuidValidator() =
         inherit EqualityValidator<Guid> ()
@@ -242,14 +268,18 @@ module Validators =
         /// Validate string is null or ""
         member _.empty
             (message : string -> string)
-            : string -> Guid -> Result<Guid, ValidationErrors> =
-            Validator.create message (fun guid -> Guid.Empty = guid)
+            (field : string)
+            (input : Guid)
+            : Result<Guid, ValidationErrors> =
+            Validator.create message (fun guid -> Guid.Empty = guid) field input
 
         /// Validate string is not null or ""
         member _.notEmpty
             (message : string -> string)
-            : string -> Guid -> Result<Guid, ValidationErrors> =
-            Validator.create message (fun guid -> Guid.Empty <> guid)
+            (field : string)
+            (input : Guid)
+            : Result<Guid, ValidationErrors> =
+            Validator.create message (fun guid -> Guid.Empty <> guid) field input
 
     type ListValidator<'a when 'a : equality>() = 
         inherit EqualityValidator<'a list> ()
@@ -282,6 +312,15 @@ module Validators =
             : Result<'a list, ValidationErrors> =
             let rule = ValidationRule.equalsLen len
             Validator.create message rule field input
+            
+        /// Validate list contains element matching predicate
+        member _.exists
+            (predicate : 'a -> bool)
+            (message : string -> string)
+            (field : string)
+            (input : ('a) list)
+            : Result<('a) list, ValidationErrors> =            
+            Validator.create message (List.exists predicate) field input
 
         /// Validate list length is greater than provided value
         member _.greaterThanLen
@@ -310,15 +349,6 @@ module Validators =
             (input : ('a) list)
             : Result<'a list, ValidationErrors> =
             Validator.create message (fun x -> not(List.isEmpty x)) field input
-            
-        /// Validate list contains element matching predicate
-        member _.exists
-            (message : string -> string)
-            (field : string)
-            (predicate : 'a -> bool)
-            (input : ('a) list)
-            : Result<('a) list, ValidationErrors> =            
-            Validator.create message (List.exists predicate) field input
 
     /// Execute validator if 'a is Some, otherwise return Ok 'a
     let optional
@@ -334,10 +364,10 @@ module Validators =
         (validator : string -> 'a -> Result<'b, ValidationErrors>)
         (message : string -> string)
         (field : string)
-        (value : 'a option)
+        (input : 'a option)
         : Result<'b, ValidationErrors> =
-        match value with
-        | Some v -> validator field v
+        match input with
+        | Some x -> validator field x
         | None   -> Error (ValidationErrors.create field [ message field ])
 
     /// DateTime validators
@@ -377,15 +407,15 @@ module Validators =
         type DefaultEqualityValidator<'a when 'a
             : equality>(x : EqualityValidator<'a>) =
             /// Value is equal to provided value with the default error message
-            member _.equals (equalTo: 'a) =
+            member _.equals (equalTo: 'a) (field : string) (input : 'a) =
                 let msg field = sprintf "%s must be equal to %A" field equalTo                
-                x.equals equalTo msg
+                x.equals equalTo msg field input
 
             /// Value is not equal to provided value with the default 
             /// error message
-            member _.notEquals (notEqualTo : 'a) = 
+            member _.notEquals (notEqualTo : 'a) (field : string) (input : 'a) =
                 let msg field = sprintf "%s must not equal %A" field notEqualTo
-                x.notEquals notEqualTo msg
+                x.notEquals notEqualTo msg field input
 
         type DefaultComparisonValidator<'a when 'a 
             : comparison>(x : ComparisonValidator<'a>) =
@@ -393,86 +423,134 @@ module Validators =
 
             /// Value is inclusively between provided min and max with the 
             /// default error message
-            member _.between (min : 'a) (max : 'a) = 
+            member _.between (min : 'a) (max : 'a) (field : string) (input : 'a) =
                 let msg field = 
                     sprintf "%s must be between %A and %A" field min max
-                x.between min max msg
+                x.between min max msg field input
 
             /// Value is greater than provided min with the default error 
             /// message
-            member _.greaterThan (min : 'a) = 
+            member _.greaterThan (min : 'a) (field : string) (input : 'a) =
                 let msg field = 
                     sprintf "%s must be greater than or equal to %A" field min
-                x.greaterThan min msg
+                x.greaterThan min msg field input
 
             /// Value is less than provided max with the default error message
-            member _.lessThan (max : 'a) = 
+            member _.lessThan (max : 'a) (field : string) (input : 'a) =
                 let msg field = 
                     sprintf "%s must be less than or equal to %A" field max
-                x.lessThan max msg
+                x.lessThan max msg field input
 
         type DefaultStringValidator(x : StringValidator) =
             inherit DefaultEqualityValidator<string>(x)
 
             /// Validate string is between length (inclusive) with the default 
             /// error message
-            member _.betweenLen (min : int) (max : int) = 
+            member _.betweenLen (min : int) (max : int) (field : string) (input : string) =
                 let msg field =
                     sprintf 
                         "%s must be between %i and %i characters" 
                         field min max
-                x.betweenLen min max msg
+                x.betweenLen min max msg field input
 
             /// Validate string is null or "" with the default error message
-            member _.empty = 
+            member _.empty (field : string) (input : string) =
                 let msg field = sprintf "%s must be empty" field
-                x.empty msg
+                x.empty msg field input
 
             /// Validate string length is greater than provided value with the 
             /// default error message
-            member _.equalsLen (len : int) = 
+            member _.equalsLen (len : int) (field : string) (input : string) =
                 let msg field = sprintf "%s must be %i characters" field len
-                x.equalsLen len msg
+                x.equalsLen len msg field input
 
             /// Validate string length is greater than provided value with the 
             /// default error message
-            member _.greaterThanLen (min : int) = 
+            member _.greaterThanLen (min : int) (field : string) (input : string) =
                 let msg field = 
                     sprintf "%s must not execeed %i characters" field min
-                x.greaterThanLen min msg
+                x.greaterThanLen min msg field input
 
             /// Validate string length is less than provided value with the 
             /// default error message
-            member _.lessThanLen (max : int) = 
+            member _.lessThanLen (max : int) (field : string) (input : string) =
                 let msg field = 
                     sprintf "%s must be at least %i characters" field max
-                x.lessThanLen max msg
+                x.lessThanLen max msg field input
 
             /// Validate string is not null or "" with the default error message
-            member _.notEmpty = 
+            member _.notEmpty (field : string) (input : string) =
                 let msg field = sprintf "%s must not be empty" field
-                x.notEmpty msg
+                x.notEmpty msg field input
 
             /// Validate string matches regular expression with the default 
             /// error message
-            member _.pattern (pattern : string) = 
+            member _.pattern (pattern : string) (field : string) (input : string) =
                 let msg field = sprintf "%s must match pattern %s" field pattern
-                x.pattern pattern msg
+                x.pattern pattern msg field input
 
-        type DefaultGuidValidator(this : GuidValidator) =
-            inherit DefaultEqualityValidator<Guid>(this)
+        type DefaultGuidValidator(x : GuidValidator) =
+            inherit DefaultEqualityValidator<Guid>(x)
 
             /// Validate System.Guid is null or "" with the default error 
             /// message
-            member _.empty = 
+            member _.empty (field : string) (input : Guid) = 
                 let msg field = sprintf "%s must be empty" field
-                this.empty msg
+                x.empty msg field input
 
             /// Validate System.Guid is not null or "" with the default error 
             /// message
-            member _.notEmpty = 
+            member _.notEmpty (field : string) (input : Guid) =  
                 let msg field = sprintf "%s must not be empty" field
-                this.notEmpty msg
+                x.notEmpty msg field input
+
+        type DefaultListValidator<'a when 'a : equality>(x : ListValidator<'a>) = 
+            inherit DefaultEqualityValidator<'a list>(x)
+
+            /// Validate string is between length (inclusive) with the default 
+            /// error message
+            member _.betweenLen (min : int) (max : int) (field : string) (input : 'a list) =
+                let msg field =
+                    sprintf 
+                        "%s must be between %i and %i items in length" 
+                        field min max
+                x.betweenLen min max msg field input
+
+            /// Validate string is null or "" with the default error message
+            member _.empty (field : string) (input : 'a list) =
+                let msg field = sprintf "%s must be empty" field
+                x.empty msg field input
+
+            /// Validate string length is greater than provided value with the 
+            /// default error message
+            member _.equalsLen (len : int) (field : string) (input : 'a list) =
+                let msg field = sprintf "%s must be %i items in length" field len
+                x.equalsLen len msg field input
+
+            /// Validate string length is greater than provided value with the 
+            /// default error message
+            member _.exists (predicate : 'a -> bool) (field : string) (input : 'a list) =
+                let msg field = sprintf "%s must contain the specified item" field
+                x.exists predicate msg field input
+
+            /// Validate string length is greater than provided value with the 
+            /// default error message
+            member _.greaterThanLen (min : int) (field : string) (input : 'a list) =
+                let msg field = 
+                    sprintf "%s must not execeed %i items in length" field min
+                x.greaterThanLen min msg field input
+
+            /// Validate string length is less than provided value with the 
+            /// default error message
+            member _.lessThanLen (max : int) (field : string) (input : 'a list) =
+                let msg field = 
+                    sprintf "%s must be at least %i items in length" field max
+                x.lessThanLen max msg field input
+
+            /// Validate string is not null or "" with the default error message
+            member _.notEmpty (field : string) (input : 'a list) =
+                let msg field = sprintf "%s must not be empty" field
+                x.notEmpty msg field input
 
         /// Execute validator if 'a is Some, otherwise return Failure with the 
         /// default error message
@@ -495,6 +573,9 @@ module Validators =
         /// float validators with the default error messages
         let Float = DefaultComparisonValidator<float>(Float)
 
+        /// System.Guid validators with the default error message
+        let Guid = DefaultGuidValidator(Guid)
+
         /// int32 validators with the default error messages
         let Int = DefaultComparisonValidator<int>(Int)
 
@@ -509,6 +590,9 @@ module Validators =
 
         /// System.TimeSpan validators with the default error messages
         let TimeSpan = DefaultComparisonValidator<TimeSpan>(TimeSpan)
+
+        /// List validators
+        let List<'a when 'a : equality> = DefaultListValidator<'a>(List)
 
 
 // ------------------------------------------------

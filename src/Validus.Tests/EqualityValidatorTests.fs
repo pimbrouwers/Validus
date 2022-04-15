@@ -4,7 +4,7 @@ open FsCheck
 open FsCheck.Xunit
 open Validus
 
-let private TestValidator = Validators.Default.DefaultEqualityValidator(Validators.EqualityValidator<int>())
+let private TestValidator = Validators.Default.Int
 
 [<Property>]
 let ``(TestValidator.equals n) should produce Success`` (NonZeroInt n) =           
