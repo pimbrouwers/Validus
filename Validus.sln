@@ -1,23 +1,27 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32804.467
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{ADF1E1AD-62CB-4ED3-AF72-9A5685F9AE90}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.github\workflows\build.yml = .github\workflows\build.yml
+		README.md = README.md
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{68D6BE36-B2EF-431B-AB84-0D1CA5DC3AD0}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Validus", "src\Validus\Validus.fsproj", "{5A225D23-85CE-4EF8-A165-FB7BCAF50EB9}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Validus", "src\Validus\Validus.fsproj", "{5A225D23-85CE-4EF8-A165-FB7BCAF50EB9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{0A2D3E39-FAE1-49DA-AD6D-22A4B81E4FA9}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Validus.Tests", "test\Validus.Tests\Validus.Tests.fsproj", "{5027F0E2-6B67-41F4-A13C-23BC5AA80C94}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Validus.Tests", "test\Validus.Tests\Validus.Tests.fsproj", "{5027F0E2-6B67-41F4-A13C-23BC5AA80C94}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{5A225D23-85CE-4EF8-A165-FB7BCAF50EB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -29,8 +33,14 @@ Global
 		{5027F0E2-6B67-41F4-A13C-23BC5AA80C94}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5027F0E2-6B67-41F4-A13C-23BC5AA80C94}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5A225D23-85CE-4EF8-A165-FB7BCAF50EB9} = {68D6BE36-B2EF-431B-AB84-0D1CA5DC3AD0}
 		{5027F0E2-6B67-41F4-A13C-23BC5AA80C94} = {0A2D3E39-FAE1-49DA-AD6D-22A4B81E4FA9}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ED4C8CE5-810A-4585-9F51-259FC1F5A9A3}
 	EndGlobalSection
 EndGlobal
