@@ -1,4 +1,4 @@
-﻿module Validus.ValidationResult.Tests
+module Validus.ValidationResult.Tests
 
 open Xunit
 open Validus
@@ -170,7 +170,7 @@ type Str16 =
 [<Fact>]
 let ``Validation supports transformation at the point of marking as optional`` () =
     let name = Some "pim"
-    let result = Validators.optional Str16.Of "First Name" name
+    let result = Constructors.optional Str16.Of "First Name" name
 
     result
     |> Result.bind (fun r -> Ok (r |> should equal (Some { Str16 = "pim" })))
@@ -186,7 +186,7 @@ let ``Validation supports transformation at the point of marking as voptional`` 
 [<Fact>]
 let ``Validation supports transformation at the point of marking as required`` () =
     let name = Some "pim"
-    let result = Validators.Default.required Str16.Of "First Name" name
+    let result = Constructors.Default.required Str16.Of "First Name" name
 
     result
     |> Result.bind (fun r -> Ok (r |> should equal { Str16 = "pim" }))

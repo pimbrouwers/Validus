@@ -75,6 +75,9 @@ module ValidationResult =
 // Validators
 // ------------------------------------------------
 
+type Validator<'a> = string -> 'a -> Result<'a, ValidationErrors>
+type Constructor<'a, 'b> = string -> 'a -> Result<'b, ValidationErrors>
+
 /// Validation rules
 module ValidationRule =
     let equality<'a when 'a : equality> (equalTo : 'a) : 'a -> bool =
@@ -110,10 +113,7 @@ module ValidationRule =
 /// Functions for Validator type
 module Validator =
     /// Combine two Validators
-    let compose
-        (v1 : string -> 'a -> Result<'a, ValidationErrors>)
-        (v2 : string -> 'a -> Result<'a, ValidationErrors>)
-        : string -> 'a -> Result<'a, ValidationErrors> =
+    let compose (v1 : Validator<'a>) (v2 : Validator<'a>) : Validator<'a> =
         fun (field : string) (value : 'a) ->
             match v1 field value, v2 field value with
             | Ok a, Ok _   -> Ok a
@@ -122,14 +122,33 @@ module Validator =
             | Error e1, Error e2 -> Error (ValidationErrors.merge e1 e2)
 
     /// Create a new Validator
-    let create
-        (message : string -> string)
-        (rule : 'a -> bool)
-        : string -> 'a -> Result<'a, ValidationErrors> =
+    let create (message : string -> string) (rule : 'a -> bool) : Validator<'a> =
         fun (field : string) (value : 'a) ->
             let error = ValidationErrors.create field [ message field ]
             if rule value then Ok value
             else error |> Error
+
+module Constructors =
+    /// Execute validator if 'a is Some, otherwise return Ok 'a
+    let optional
+        (validator : Constructor<'a, 'b>)
+        (field : string) (value : 'a option)
+        : Result<'b option, ValidationErrors> =
+        match value with
+        | Some v -> validator field v |> Result.map (fun v -> Some v)
+        | None   -> Ok None
+
+    /// Execute validator if 'a is Some, otherwise return Failure
+    let required
+        (validator : Constructor<'a, 'b>)
+        (message : string -> string)
+        (field : string)
+        (input : 'a option)
+        : Result<'b, ValidationErrors> =
+        match input with
+        | Some x -> validator field x
+        | None   -> Error (ValidationErrors.create field [ message field ])
+
 
 /// Validation functions
 module Validators =
@@ -351,13 +370,7 @@ module Validators =
             Validator.create message (fun x -> not(List.isEmpty x)) field input
 
     /// Execute validator if 'a is Some, otherwise return Ok 'a
-    let optional
-        (validator : string -> 'a -> Result<'b, ValidationErrors>)
-        (field : string) (value : 'a option)
-        : Result<'b option, ValidationErrors> =
-        match value with
-        | Some v -> validator field v |> Result.map (fun v -> Some v)
-        | None   -> Ok None
+    let optional (validator : Validator<'a>) field value = Constructors.optional validator field value
 
     /// Execute validator if 'a is ValueSome, otherwise return Ok 'a
     let voptional
@@ -369,15 +382,7 @@ module Validators =
         | ValueNone   -> Ok ValueNone
 
     /// Execute validator if 'a is Some, otherwise return Failure
-    let required
-        (validator : string -> 'a -> Result<'b, ValidationErrors>)
-        (message : string -> string)
-        (field : string)
-        (input : 'a option)
-        : Result<'b, ValidationErrors> =
-        match input with
-        | Some x -> validator field x
-        | None   -> Error (ValidationErrors.create field [ message field ])
+    let required (validator : Validator<'a>) message field input = Constructors.required validator message field input
 
     /// Execute validator if 'a is Some, otherwise return Failure
     let vrequired
@@ -575,7 +580,7 @@ module Validators =
         /// Execute validator if 'a is Some, otherwise return Failure with the
         /// default error message
         let required
-            (validator : string -> 'a -> Result<'b, ValidationErrors>)
+            (validator : Validator<'a>)
             (field : string)
             (value : 'a option) =
             let msg field = sprintf "%s is required" field
