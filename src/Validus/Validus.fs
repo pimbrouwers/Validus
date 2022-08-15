@@ -109,6 +109,15 @@ module ValidationRule =
 
 /// Functions for Validator type
 module Validator =
+    /// Chain two Validators
+    let chain
+        (v1 : string -> 'a -> Result<'b, ValidationErrors>)
+        (v2 : string -> 'b -> Result<'c, ValidationErrors>)
+        : string -> 'a -> Result<'c, ValidationErrors> =
+        fun (field : string) (value : 'a) ->
+            let result1 = v1 field value
+            result1 |> Result.bind (v2 field)
+
     /// Combine two Validators
     let compose
         (v1 : string -> 'a -> Result<'a, ValidationErrors>)
@@ -622,13 +631,10 @@ module Validators =
 /// Custom operators for ValidationResult
 module Operators =
     /// Alias for ValidationResult.apply
-    let inline (<*>) f x = ValidationResult.apply f x
+    let inline (<*>) applier result = ValidationResult.apply applier result
 
-    /// Alias for Result.map
-    let inline (<!>) f x = Result.map f x
-
-    /// Alias for ValidationResult.bind
-    let inline (>>=) x f = Result.bind f x
+    /// Alias for Validator.chain
+    let inline (<|>) v1 v2 = Validator.chain v1 v2
 
     /// Alias for Validator.compose
     let inline (<+>) v1 v2 = Validator.compose v1 v2

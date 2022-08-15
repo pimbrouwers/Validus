@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -11,6 +11,7 @@
     <Compile Include="GuidValidatorTests.fs" />
     <Compile Include="ValidationErrorsTests.fs" />
     <Compile Include="ValidationResultTests.fs" />
+    <Compile Include="ValidatorOperationsTests.fs" />
     <Compile Include="EqualityValidatorTests.fs" />
     <Compile Include="ComparisonValidatorTests.fs" />
     <Compile Include="StringValidatorTests.fs" />

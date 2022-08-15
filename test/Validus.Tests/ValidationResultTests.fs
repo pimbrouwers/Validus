@@ -4,6 +4,7 @@ open Xunit
 open Validus
 open Validus.Operators
 open FsUnit.Xunit
+open FsToolkit.ErrorHandling.Operator.Result
 
 type FakeValidationRecord =
     { Name : string; Age : int }
