@@ -1,4 +1,4 @@
-module Validus.ValidationResult.Tests
+﻿module Validus.ValidationResult.Tests
 
 open Xunit
 open Validus

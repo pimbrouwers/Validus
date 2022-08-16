@@ -8,7 +8,7 @@ open FsUnit.Xunit
 let ``ValidationErrors.create produce Map<string, string list> from field and errors`` () =
     let expected = [ "fakeField1", [ "fake error message 1" ] ] |> Map.ofList
     let error = ValidationErrors.create "fakeField1" [ "fake error message 1" ]
-    error |> ValidationErrors.toMap |> should equal expected    
+    error |> ValidationErrors.toMap |> should equal expected
 
 [<Fact>]
 let ``ValidationErrors.merge produces Map<string, string list> from two source`` () =
@@ -17,7 +17,7 @@ let ``ValidationErrors.merge produces Map<string, string list> from two source``
     let error2 = ValidationErrors.create "fakeField2" [ "fake error message 2" ]
 
     ValidationErrors.merge error error2
-    |> ValidationErrors.toMap 
+    |> ValidationErrors.toMap
     |> should equal expected
 
 [<Fact>]
@@ -27,5 +27,5 @@ let ``ValidationErrors.merge produces Map<string, string list> from two sources 
     let error2 = ValidationErrors.create "fakeField1" [ "fake error message 2" ]
 
     ValidationErrors.merge error error2
-    |> ValidationErrors.toMap 
+    |> ValidationErrors.toMap
     |> should equal expected
