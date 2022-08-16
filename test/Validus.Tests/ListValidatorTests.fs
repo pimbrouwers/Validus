@@ -34,7 +34,7 @@ let ``(TestValidator.empty) should produce Failure`` () =
 
 [<Property>]
 let ``(TestValidator.equalsLen len) should produce Success`` () =
-    match TestValidator.equalsLen 7 "Test" testList with
+    match TestValidator.equalsLen 10 "Test" testList with
     | Ok _ -> true
     | Error _ -> false
 
