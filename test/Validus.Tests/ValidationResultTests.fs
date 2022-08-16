@@ -190,3 +190,11 @@ let ``Validation supports transformation at the point of marking as required`` (
 
     result
     |> Result.bind (fun r -> Ok (r |> should equal { Str16 = "pim" }))
+
+[<Fact>]
+let ``Validation supports transformation at the point of marking as vrequired`` () =
+    let name = ValueSome "pim"
+    let result = Validators.Default.vrequired Str16.Of "First Name" name
+
+    result
+    |> Result.bind (fun r -> Ok (r |> should equal { Str16 = "pim" }))
