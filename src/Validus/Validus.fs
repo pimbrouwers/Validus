@@ -581,6 +581,15 @@ module Validators =
             let msg field = sprintf "%s is required" field
             required validator msg field value
 
+        /// Execute validator if 'a is Some, otherwise return Failure with the
+        /// default error message
+        let vrequired
+            (validator : string -> 'a -> Result<'b, ValidationErrors>)
+            (field : string)
+            (value : 'a ValueOption) =
+            let msg field = sprintf "%s is required" field
+            vrequired validator msg field value
+
         /// DateTime validators with the default error messages
         let DateTime = DefaultComparisonValidator<DateTime>(DateTime)
 
