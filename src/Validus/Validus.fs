@@ -633,8 +633,11 @@ module Operators =
     /// Alias for ValidationResult.apply
     let inline (<*>) applier result = ValidationResult.apply applier result
 
-    /// Alias for Validator.chain
-    let inline (<|>) v1 v2 = Validator.chain v1 v2
+    /// Alias for Validator.chain forward
+    let inline (>=>) v1 v2 = Validator.chain v1 v2
+
+    /// Alias for Validator.chain backward
+    let inline (<=<) v1 v2 = Validator.chain v2 v1
 
     /// Alias for Validator.compose
     let inline (<+>) v1 v2 = Validator.compose v1 v2

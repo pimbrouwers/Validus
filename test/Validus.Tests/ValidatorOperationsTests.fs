@@ -18,7 +18,7 @@ let notEndsWithWhiteSpace fieldName (s: string) =
 
 let compositionValidator = notStartsWithWhiteSpace <+> notEndsWithWhiteSpace
 
-let chainValidator = Validators.Default.String.notEmpty <|> compositionValidator
+let chainValidator = Validators.Default.String.notEmpty >=> compositionValidator
 
 [<Fact>]
 let ``Can compose validators`` () =
