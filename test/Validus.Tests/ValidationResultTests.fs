@@ -17,6 +17,12 @@ type FakeValidationRecordWithOption =
     static member Create name age =
         { Name = name; Age = age }
 
+type FakeValidationRecordWithValueOption =
+    { Name : string; Age : int voption }
+
+    static member Create name age =
+        { Name = name; Age = age }
+
 [<Fact>]
 let ``Can bind ValidationResults`` () =
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }
@@ -89,6 +95,29 @@ let ``Validation of record with option succeeds`` () =
     |> Result.bind (fun r -> Ok (r |> should equal expected))
 
 [<Fact>]
+let ``Validation of record with voption succeeds`` () =
+    let expected : FakeValidationRecordWithValueOption = { Name = "John"; Age = ValueNone }
+    let result : Result<FakeValidationRecordWithValueOption, ValidationErrors> =
+        let nameValidator =
+            Validators.Default.String.greaterThanLen 2 "Name" expected.Name
+
+        let ageValidator =
+            let validator =
+                Validators.Default.Int.greaterThan 0 <+> Validators.Default.Int.lessThan 100
+
+            Validators.voptional
+                validator
+                "Age"
+                expected.Age
+
+        FakeValidationRecordWithValueOption.Create
+        <!> nameValidator
+        <*> ageValidator
+
+    result
+    |> Result.bind (fun r -> Ok (r |> should equal expected))
+
+[<Fact>]
 let ``Validation of record fails`` () =
     let name = "Jo"
     let age = 3
@@ -145,6 +174,14 @@ let ``Validation supports transformation at the point of marking as optional`` (
 
     result
     |> Result.bind (fun r -> Ok (r |> should equal (Some { Str16 = "pim" })))
+
+[<Fact>]
+let ``Validation supports transformation at the point of marking as voptional`` () =
+    let name = ValueSome "pim"
+    let result = Validators.voptional Str16.Of "First Name" name
+
+    result
+    |> Result.bind (fun r -> Ok (r |> should equal (ValueSome { Str16 = "pim" })))
 
 [<Fact>]
 let ``Validation supports transformation at the point of marking as required`` () =

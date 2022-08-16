@@ -359,6 +359,15 @@ module Validators =
         | Some v -> validator field v |> Result.map (fun v -> Some v)
         | None   -> Ok None
 
+    /// Execute validator if 'a is ValueSome, otherwise return Ok 'a
+    let voptional
+        (validator : string -> 'a -> Result<'b, ValidationErrors>)
+        (field : string) (value : 'a voption)
+        : Result<'b voption, ValidationErrors> =
+        match value with
+        | ValueSome v -> validator field v |> Result.map (fun v -> ValueSome v)
+        | ValueNone   -> Ok ValueNone
+
     /// Execute validator if 'a is Some, otherwise return Failure
     let required
         (validator : string -> 'a -> Result<'b, ValidationErrors>)
@@ -369,6 +378,17 @@ module Validators =
         match input with
         | Some x -> validator field x
         | None   -> Error (ValidationErrors.create field [ message field ])
+
+    /// Execute validator if 'a is Some, otherwise return Failure
+    let vrequired
+        (validator : string -> 'a -> Result<'b, ValidationErrors>)
+        (message : string -> string)
+        (field : string)
+        (value : 'a voption)
+        : Result<'b, ValidationErrors> =
+        match value with
+        | ValueSome v -> validator field v
+        | ValueNone   -> Error (ValidationErrors.create field [ message field ])
 
     /// DateTime validators
     let DateTime = ComparisonValidator<DateTime>()
