@@ -432,13 +432,13 @@ module Validators =
             /// message
             member _.greaterThan (min : 'a) (field : string) (input : 'a) =
                 let msg field =
-                    sprintf "%s must be greater than or equal to %A" field min
+                    sprintf "%s must be greater than %A" field min
                 x.greaterThan min msg field input
 
             /// Value is less than provided max with the default error message
             member _.lessThan (max : 'a) (field : string) (input : 'a) =
                 let msg field =
-                    sprintf "%s must be less than or equal to %A" field max
+                    sprintf "%s must be less than %A" field max
                 x.lessThan max msg field input
 
         type DefaultStringValidator(x : StringValidator) =
