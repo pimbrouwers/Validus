@@ -495,7 +495,7 @@ module Validators =
             /// default error message
             member _.lessThanLen (max : int) (field : string) (input : string) =
                 let msg field =
-                    sprintf "%s must be at least %i characters" field max
+                    sprintf "%s must be at less than %i characters" field max
                 x.lessThanLen max msg field input
 
             /// Validate string is not null or "" with the default error message
