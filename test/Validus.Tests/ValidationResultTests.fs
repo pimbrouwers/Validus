@@ -23,6 +23,19 @@ type FakeValidationRecordWithValueOption =
     static member Create name age =
         { Name = name; Age = age }
 
+
+[<Fact>]
+let ``String.empty should produce Success for null`` () =
+    match Validators.Default.String.empty "Test" null with
+    | Ok _ -> true
+    | Error _ -> false
+
+[<Fact>]
+let ``String.notEmpty should produce Failure for null`` () =
+    match Validators.Default.String.notEmpty "Test" null with
+    | Ok _ -> false
+    | Error _ -> true
+
 [<Fact>]
 let ``Can bind ValidationResults`` () =
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }
