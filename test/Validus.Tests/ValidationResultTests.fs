@@ -23,7 +23,6 @@ type FakeValidationRecordWithValueOption =
     static member Create name age =
         { Name = name; Age = age }
 
-
 [<Fact>]
 let ``String.empty should produce Success for null`` () =
     match Validators.Default.String.empty "Test" null with
@@ -33,6 +32,19 @@ let ``String.empty should produce Success for null`` () =
 [<Fact>]
 let ``String.notEmpty should produce Failure for null`` () =
     match Validators.Default.String.notEmpty "Test" null with
+    | Ok _ -> false
+    | Error _ -> true
+
+[<Fact>]
+let ``String.notEmpty composed should produce Failure for null`` () =
+    let notStartsWithWhiteSpace =
+        let rule (x : string) = x <> "foo"
+        let msg = sprintf "'%s' should not start with a space"
+        Validator.create msg rule
+
+    let validator = Validators.Default.String.notEmpty <+> notStartsWithWhiteSpace
+
+    match validator "Test" null with
     | Ok _ -> false
     | Error _ -> true
 
