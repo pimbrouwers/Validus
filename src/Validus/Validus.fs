@@ -1,6 +1,7 @@
 module Validus
 
 open System
+open System.Collections.Generic
 
 // ------------------------------------------------
 // Validation Errors
@@ -18,16 +19,22 @@ module ValidationErrors =
     let create (field : string) (errors : string list) : ValidationErrors =
         [ field, errors ] |> Map.ofList |> validationErrors
 
+    /// Combine a list of ValidationErrors
+    let collect (errors : ValidationErrors list) =
+        let dict = Dictionary<string, string list>()
+        for e in errors do
+            for x in e.Value do
+                if dict.ContainsKey(x.Key) then dict.[x.Key] <- List.concat [ dict.[x.Key]; x.Value ]
+                else dict.Add(x.Key, x.Value)
+
+        (dict :> seq<_>)
+        |> Seq.map (|KeyValue|)
+        |> Map.ofSeq
+        |> validationErrors
+
     /// Combine two ValidationErrors instances
     let merge (e1 : ValidationErrors) (e2 : ValidationErrors) : ValidationErrors =
-        Map.fold
-            (fun acc k v ->
-                match Map.tryFind k acc with
-                | Some v' -> Map.add k (v' @ v) acc
-                | None    -> Map.add k v acc)
-            e1.Value
-            e2.Value
-        |> validationErrors
+        collect [ e1; e2 ]
 
     /// Unwrap ValidationErrors into a standard Map<string, string list>
     let toMap (e : ValidationErrors) : Map<string, string list> =
