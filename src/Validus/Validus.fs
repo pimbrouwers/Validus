@@ -112,10 +112,19 @@ module ValidationRule =
         (lessThan max (^a : (member Length : int) x))
 
     let strPattern (pattern : string) : string -> bool =
-        fun v -> Text.RegularExpressions.Regex.IsMatch(v, pattern)
+        fun v -> if isNull v then false else Text.RegularExpressions.Regex.IsMatch(v, pattern)
 
 /// Functions for Validator type
 module Validator =
+    /// Chain two validators
+    let chain
+        (v1 : string -> 'a -> Result<'a, ValidationErrors>)
+        (v2 : string -> 'a -> Result<'a, ValidationErrors>)
+        : string -> 'a -> Result<'a, ValidationErrors> =
+        fun (field : string) (value : 'a) ->
+            (v1 field value)
+            |> Result.bind (v2 field)
+
     /// Combine two Validators
     let compose
         (v1 : string -> 'a -> Result<'a, ValidationErrors>)
@@ -645,6 +654,9 @@ module Operators =
 
     /// Alias for ValidationResult.bind
     let inline (>>=) x f = Result.bind f x
+
+    /// Alias for Validator.chain
+    let inline (<->) v1 v2 = Validator.chain v1 v2
 
     /// Alias for Validator.compose
     let inline (<+>) v1 v2 = Validator.compose v1 v2

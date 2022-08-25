@@ -49,6 +49,59 @@ let ``String.notEmpty composed should produce Failure for null`` () =
     | Error _ -> true
 
 [<Fact>]
+let ``Can chain Validator's together`` () =
+    let validator =
+        Validators.Default.String.notEmpty
+        <-> Validators.Default.String.greaterThanLen 7
+
+    let result = validator "Name" ""
+
+    result
+    |> Result.mapError (fun r ->
+        let rMap = ValidationErrors.toMap r
+        rMap.ContainsKey "Name" |> should equal true
+        rMap.["Name"].Length |> should equal 1)
+
+[<Fact>]
+let ``Can compose Validator's together`` () =
+    let validator =
+        Validators.Default.String.notEmpty
+        <+> Validators.Default.String.greaterThanLen 7
+
+    let result = validator "Name" ""
+
+    result
+    |> Result.mapError (fun r ->
+        let rMap = ValidationErrors.toMap r
+        rMap.ContainsKey "Name" |> should equal true
+        rMap.["Name"].Length |> should equal 2)
+
+[<Fact>]
+let ``Can chain & compose Validator's together`` () =
+    let validator =
+        Validators.Default.String.notEmpty
+        <-> (Validators.Default.String.pattern "^\S" // does not start with space
+        <+> Validators.Default.String.pattern "\S$") // does not end with space
+
+    let result = validator "Name" null
+
+    result
+    |> Result.mapError (fun r ->
+        let rMap = ValidationErrors.toMap r
+        rMap.ContainsKey "Name" |> should equal true
+        rMap.["Name"].Length |> should equal 1)
+    |> ignore
+
+    let result2 = validator "Name" " Validus "
+
+    result2
+    |> Result.mapError (fun r ->
+        let rMap = ValidationErrors.toMap r
+        rMap.ContainsKey "Name" |> should equal true
+        rMap.["Name"].Length |> should equal 2)
+    |> ignore
+
+[<Fact>]
 let ``Can bind ValidationResults`` () =
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }
 
