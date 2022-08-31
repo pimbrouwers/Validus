@@ -25,13 +25,13 @@ type FakeValidationRecordWithValueOption =
 
 [<Fact>]
 let ``String.empty should produce Success for null`` () =
-    match Validators.Default.String.empty "Test" null with
+    match Check.String.empty "Test" null with
     | Ok _ -> true
     | Error _ -> false
 
 [<Fact>]
 let ``String.notEmpty should produce Failure for null`` () =
-    match Validators.Default.String.notEmpty "Test" null with
+    match Check.String.notEmpty "Test" null with
     | Ok _ -> false
     | Error _ -> true
 
@@ -42,7 +42,7 @@ let ``String.notEmpty composed should produce Failure for null`` () =
         let msg = sprintf "'%s' should not start with a space"
         Validator.create msg rule
 
-    let validator = Validators.Default.String.notEmpty <+> notStartsWithWhiteSpace
+    let validator = Check.String.notEmpty <+> notStartsWithWhiteSpace
 
     match validator "Test" null with
     | Ok _ -> false
@@ -51,8 +51,8 @@ let ``String.notEmpty composed should produce Failure for null`` () =
 [<Fact>]
 let ``Can chain Validator's together`` () =
     let validator =
-        Validators.Default.String.notEmpty
-        >=> Validators.Default.String.greaterThanLen 7
+        Check.String.notEmpty
+        >=> Check.String.greaterThanLen 7
 
     let result = validator "Name" ""
 
@@ -65,8 +65,8 @@ let ``Can chain Validator's together`` () =
 [<Fact>]
 let ``Can compose Validator's together`` () =
     let validator =
-        Validators.Default.String.notEmpty
-        <+> Validators.Default.String.greaterThanLen 7
+        Check.String.notEmpty
+        <+> Check.String.greaterThanLen 7
 
     let result = validator "Name" ""
 
@@ -79,9 +79,9 @@ let ``Can compose Validator's together`` () =
 [<Fact>]
 let ``Can chain & compose Validator's together`` () =
     let validator =
-        Validators.Default.String.notEmpty
-        >=> (Validators.Default.String.pattern "^\S" // does not start with space
-        <+> Validators.Default.String.pattern "\S$") // does not end with space
+        Check.String.notEmpty
+        >=> (Check.String.pattern "^\S" // does not start with space
+        <+> Check.String.pattern "\S$") // does not end with space
 
     let result = validator "Name" null
 
@@ -107,8 +107,8 @@ let ``Can bind ValidationResults`` () =
 
     let result : Result<string, ValidationErrors> =
         let validator =
-            Validators.Default.String.greaterThanLen 2
-            <+> Validators.Default.String.lessThanLen 100
+            Check.String.greaterThanLen 2
+            <+> Check.String.lessThanLen 100
 
 
         validate {
@@ -136,13 +136,13 @@ let ``Validation of record succeeds using computation expression`` () =
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }
     let result : Result<FakeValidationRecord, ValidationErrors> =
         let nameValidator =
-            Validators.Default.String.greaterThanLen 2
-            <+> Validators.Default.String.lessThanLen 100
-            <+> Validators.Default.String.equals expected.Name
+            Check.String.greaterThanLen 2
+            <+> Check.String.lessThanLen 100
+            <+> Check.String.equals expected.Name
 
         validate {
             let! name = nameValidator "Name" expected.Name
-            and! age = Validators.Default.Int.greaterThan 0 "Age" 1
+            and! age = Check.Int.greaterThan 0 "Age" 1
             return FakeValidationRecord.Create name age
         }
 
@@ -154,13 +154,13 @@ let ``Validation of record with option succeeds`` () =
     let expected : FakeValidationRecordWithOption = { Name = "John"; Age = None }
     let result : Result<FakeValidationRecordWithOption, ValidationErrors> =
         let nameValidator =
-            Validators.Default.String.greaterThanLen 2 "Name" expected.Name
+            Check.String.greaterThanLen 2 "Name" expected.Name
 
         let ageValidator =
             let validator =
-                Validators.Default.Int.greaterThan 0 <+> Validators.Default.Int.lessThan 100
+                Check.Int.greaterThan 0 <+> Check.Int.lessThan 100
 
-            Validators.optional
+            Check.option
                 validator
                 "Age"
                 expected.Age
@@ -177,11 +177,11 @@ let ``Validation of record with voption succeeds`` () =
     let expected : FakeValidationRecordWithValueOption = { Name = "John"; Age = ValueNone }
     let result : Result<FakeValidationRecordWithValueOption, ValidationErrors> =
         let nameValidator =
-            Validators.Default.String.greaterThanLen 2 "Name" expected.Name
+            Check.String.greaterThanLen 2 "Name" expected.Name
 
         let ageValidator =
             let validator =
-                Validators.Default.Int.greaterThan 0 <+> Validators.Default.Int.lessThan 100
+                Check.Int.greaterThan 0 <+> Check.Int.lessThan 100
 
             Validators.voptional
                 validator
@@ -201,8 +201,8 @@ let ``Validation of record fails`` () =
     let age = 3
     let result : Result<FakeValidationRecord, ValidationErrors> =
         let nameValidator =
-            Validators.Default.String.greaterThanLen 2
-            <+> Validators.Default.String.lessThanLen 100
+            Check.String.greaterThanLen 2
+            <+> Check.String.lessThanLen 100
 
         FakeValidationRecord.Create
         <!> nameValidator "Name" name
@@ -220,8 +220,8 @@ let ``Validation of record fails with computation expression`` () =
     let age = 3
     let result : Result<FakeValidationRecord, ValidationErrors> =
         let nameValidator =
-            Validators.Default.String.greaterThanLen 2
-            <+> Validators.Default.String.lessThanLen 100
+            Check.String.greaterThanLen 2
+            <+> Check.String.lessThanLen 100
 
         validate {
             let! name = nameValidator "Name" name
@@ -242,13 +242,13 @@ type Str16 =
 
     static member Of field input =
         input
-        |> Validators.Default.String.betweenLen 2 16 field
+        |> Check.String.betweenLen 2 16 field
         |> Result.map (fun v -> { Str16 = v.Trim() })
 
 [<Fact>]
 let ``Validation supports transformation at the point of marking as optional`` () =
     let name = Some "pim"
-    let result = Validators.optional Str16.Of "First Name" name
+    let result = Check.option Str16.Of "First Name" name
 
     result
     |> Result.bind (fun r -> Ok (r |> should equal (Some { Str16 = "pim" })))
@@ -264,7 +264,7 @@ let ``Validation supports transformation at the point of marking as voptional`` 
 [<Fact>]
 let ``Validation supports transformation at the point of marking as required`` () =
     let name = Some "pim"
-    let result = Validators.Default.required Str16.Of "First Name" name
+    let result = Check.required Str16.Of "First Name" name
 
     result
     |> Result.bind (fun r -> Ok (r |> should equal { Str16 = "pim" }))
@@ -272,7 +272,7 @@ let ``Validation supports transformation at the point of marking as required`` (
 [<Fact>]
 let ``Validation supports transformation at the point of marking as vrequired`` () =
     let name = ValueSome "pim"
-    let result = Validators.Default.vrequired Str16.Of "First Name" name
+    let result = Check.vrequired Str16.Of "First Name" name
 
     result
     |> Result.bind (fun r -> Ok (r |> should equal { Str16 = "pim" }))

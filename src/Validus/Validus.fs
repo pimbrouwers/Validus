@@ -662,6 +662,24 @@ module Operators =
     /// Alias for Validator.compose
     let inline (<+>) v1 v2 = Validator.merge v1 v2
 
+    module Check =
+        let option = Validators.optional
+        let voption = Validators.voptional
+        let required = Validators.Default.required
+        let vrequired = Validators.Default.vrequired
+
+        let DateTime = Validators.Default.DateTime
+        let DateTimeOffset = Validators.Default.DateTimeOffset
+        let Decimal = Validators.Default.Decimal
+        let Float = Validators.Default.Float
+        let Guid = Validators.Default.Guid
+        let Int = Validators.Default.Int
+        let Int16 = Validators.Default.Int16
+        let Int64 = Validators.Default.Int64
+        let String = Validators.Default.String
+        let TimeSpan = Validators.Default.TimeSpan
+        let List<'a when 'a : equality> = Validators.Default.List
+
 
 // ------------------------------------------------
 // Builder
