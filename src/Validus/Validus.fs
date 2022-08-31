@@ -116,17 +116,18 @@ module ValidationRule =
 
 /// Functions for Validator type
 module Validator =
-    /// Chain two validators
-    let chain
+    /// Compose two validators
+    let compose
         (v1 : string -> 'a -> Result<'a, ValidationErrors>)
         (v2 : string -> 'a -> Result<'a, ValidationErrors>)
         : string -> 'a -> Result<'a, ValidationErrors> =
         fun (field : string) (value : 'a) ->
-            (v1 field value)
-            |> Result.bind (v2 field)
+            match v1 field value with
+            | Ok x -> v2 field x
+            | Error e -> Error e
 
-    /// Combine two Validators
-    let compose
+    /// Merge two Validators
+    let merge
         (v1 : string -> 'a -> Result<'a, ValidationErrors>)
         (v2 : string -> 'a -> Result<'a, ValidationErrors>)
         : string -> 'a -> Result<'a, ValidationErrors> =
@@ -656,10 +657,10 @@ module Operators =
     let inline (>>=) x f = Result.bind f x
 
     /// Alias for Validator.chain
-    let inline (<->) v1 v2 = Validator.chain v1 v2
+    let inline (>=>) v1 v2 = Validator.compose v1 v2
 
     /// Alias for Validator.compose
-    let inline (<+>) v1 v2 = Validator.compose v1 v2
+    let inline (<+>) v1 v2 = Validator.merge v1 v2
 
 
 // ------------------------------------------------

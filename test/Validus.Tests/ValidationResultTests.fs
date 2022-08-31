@@ -52,7 +52,7 @@ let ``String.notEmpty composed should produce Failure for null`` () =
 let ``Can chain Validator's together`` () =
     let validator =
         Validators.Default.String.notEmpty
-        <-> Validators.Default.String.greaterThanLen 7
+        >=> Validators.Default.String.greaterThanLen 7
 
     let result = validator "Name" ""
 
@@ -80,7 +80,7 @@ let ``Can compose Validator's together`` () =
 let ``Can chain & compose Validator's together`` () =
     let validator =
         Validators.Default.String.notEmpty
-        <-> (Validators.Default.String.pattern "^\S" // does not start with space
+        >=> (Validators.Default.String.pattern "^\S" // does not start with space
         <+> Validators.Default.String.pattern "\S$") // does not end with space
 
     let result = validator "Name" null
