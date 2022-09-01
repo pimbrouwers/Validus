@@ -45,7 +45,7 @@ let ``String.notEmpty composed should produce Failure for null`` () =
         Validator.create msg rule
 
     let validator =
-        GroupValidator(Check.String.notEmpty)
+        ValidatorGroup(Check.String.notEmpty)
             .And(notStartsWithWhiteSpace)
             .Build()
 
@@ -59,7 +59,7 @@ let ``Can bind ValidationResults`` () =
 
     let result : Result<string, ValidationErrors> =
         let validator =
-            GroupValidator(Check.String.greaterThanLen 2)
+            ValidatorGroup(Check.String.greaterThanLen 2)
                 .And(Check.String.lessThanLen 100)
                 .Build()
 
@@ -88,7 +88,7 @@ let ``Validation of record succeeds using computation expression`` () =
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }
     let result : Result<FakeValidationRecord, ValidationErrors> =
         let nameValidator =
-            GroupValidator(Check.String.greaterThanLen 2)
+            ValidatorGroup(Check.String.greaterThanLen 2)
                 .And(Check.String.lessThanLen 100)
                 .And(Check.String.equals expected.Name)
                 .Build()
@@ -111,7 +111,7 @@ let ``Validation of record with option succeeds`` () =
 
         let ageValidator =
             let validator =
-                GroupValidator(Check.Int.greaterThan 0)
+                ValidatorGroup(Check.Int.greaterThan 0)
                     .And(Check.Int.lessThan 100)
                     .Build()
 
@@ -141,7 +141,7 @@ let ``Validation of record with voption succeeds`` () =
 
         let ageValidator =
             let validator =
-                GroupValidator(Check.Int.greaterThan 0)
+                ValidatorGroup(Check.Int.greaterThan 0)
                     .And(Check.Int.lessThan 100)
                     .Build()
 
@@ -168,7 +168,7 @@ let ``Validation of record fails`` () =
     let age = 3
     let result : Result<FakeValidationRecord, ValidationErrors> =
         let nameValidator =
-            GroupValidator(Check.String.greaterThanLen 2)
+            ValidatorGroup(Check.String.greaterThanLen 2)
                 .And(Check.String.lessThanLen 100)
                 .Build()
 
@@ -193,7 +193,7 @@ let ``Validation of record fails with computation expression`` () =
     let age = 3
     let result : Result<FakeValidationRecord, ValidationErrors> =
         let nameValidator =
-            GroupValidator(Check.String.greaterThanLen 2)
+            ValidatorGroup(Check.String.greaterThanLen 2)
                 .And(Check.String.lessThanLen 100)
                 .Build()
 
@@ -210,7 +210,7 @@ let ``Validation of record fails with computation expression`` () =
         rMap.["Age"] |> should equal ["Age must be greater than 3"])
 
 [<Fact>]
-let ``GroupValidator works with both And() and Then()`` () =
+let ``ValidatorGroup works with both And() and Then()`` () =
 
     let emailPatternValidator =
         let msg = sprintf "Please provide a valid %s"
@@ -226,7 +226,7 @@ let ``GroupValidator works with both And() and Then()`` () =
         Validator.create msg rule
 
     let emailValidator =
-        GroupValidator(Check.String.betweenLen 8 512)
+        ValidatorGroup(Check.String.betweenLen 8 512)
             .And(emailPatternValidator)
             .Then(notEqualsValidator)
             .Build()

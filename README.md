@@ -53,7 +53,7 @@ module Person =
                 let msg = sprintf "Please provide a valid %s"
                 Check.WithMessage.String.pattern "[^@]+@[^\.]+\..+" msg
 
-            GroupValidator(Check.String.betweenLen 8 512)
+            ValidatorGroup(Check.String.betweenLen 8 512)
                 .And(emailPatternValidator)
                 .Build()
 
@@ -128,7 +128,7 @@ module Person =
         let nameValidator = Check.String.betweenLen 3 64
 
         let firstNameValidator =
-            GroupValidator(nameValidator)
+            ValidatorGroup(nameValidator)
                 .Then(Check.String.notEquals dto.LastName)
                 .Build()
 
@@ -160,7 +160,7 @@ let fooValidator =
 
 ## Combining Validators
 
-Complex validator chains and waterfalls can be created by combining validators together using the `GroupValidator` API.
+Complex validator chains and waterfalls can be created by combining validators together using the `ValidatorGroup` API.
 
 ```f#
 open System.Net.Mail
@@ -186,7 +186,7 @@ let mailAddressValidator =
     Validator.create msg rule
 
 let emailValidator =
-    GroupValidator(Check.String.betweenLen 8 512)
+    ValidatorGroup(Check.String.betweenLen 8 512)
         .And(emailPatternValidator)
         .Then(mailAddressValidator) // only executes when prior two steps are `Ok`
         .Build()

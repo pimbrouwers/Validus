@@ -55,11 +55,11 @@ module Validator =
             if rule value then Ok value
             else error |> Error
 
-type GroupValidator<'a>(startValidator : Validator<'a, 'a>) =
+type ValidatorGroup<'a>(startValidator : Validator<'a, 'a>) =
     member _.Build() = startValidator
 
     member _.And(andValidator : Validator<'a, 'a>) =
-        GroupValidator(fun f v ->
+        ValidatorGroup(fun f v ->
             match startValidator f v, andValidator f v with
             | Ok a, Ok _   -> Ok a
             | Error e, Ok _   -> Error e
@@ -67,7 +67,7 @@ type GroupValidator<'a>(startValidator : Validator<'a, 'a>) =
             | Error e1, Error e2 -> Error (ValidationErrors.merge e1 e2))
 
     member _.Then(nextValidator : Validator<'a, 'a>) =
-        GroupValidator(fun f v ->
+        ValidatorGroup(fun f v ->
             Result.bind (nextValidator f) (startValidator f v))
 
 /// Validation functions
