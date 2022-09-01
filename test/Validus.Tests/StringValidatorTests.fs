@@ -4,7 +4,7 @@ open FsCheck
 open FsCheck.Xunit
 open Validus
 
-let private TestValidator = Validators.Default.String
+let private TestValidator = Check.String
 let private testString = "validus"
 let private empty = ""
 

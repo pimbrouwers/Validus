@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>Validus</AssemblyName>
-    <Version>3.0.2</Version>
+    <Version>4.0.0-alpha1</Version>
 
     <!-- General info -->
     <Description>Functional input validation for F#.</Description>
@@ -23,6 +23,7 @@
     <PackageTags>fsharp;functional;validation</PackageTags>
     <PackageProjectUrl>https://github.com/pimbrouwers/Validus</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/pimbrouwers/Validus</RepositoryUrl>
@@ -35,10 +36,19 @@
 
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.5.2" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
+
   <ItemGroup>
-    <Content Include="*.fsproj; *.fs; *.js;" Exclude="**\*.fs.js" PackagePath="fable/" />
-    <Compile Include="Validus.fs" />
+    <Compile Include="Core.fs" />
+    <Compile Include="Validators.fs" />
+    <Compile Include="Check.fs" />
+    <Compile Include="ValidationResultBuilder.fs" />
+    <Compile Include="Operators.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

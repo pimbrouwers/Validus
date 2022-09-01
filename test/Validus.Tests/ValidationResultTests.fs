@@ -1,5 +1,6 @@
 ﻿module Validus.ValidationResult.Tests
 
+open System
 open Xunit
 open Validus
 open Validus.Operators
@@ -42,64 +43,14 @@ let ``String.notEmpty composed should produce Failure for null`` () =
         let msg = sprintf "'%s' should not start with a space"
         Validator.create msg rule
 
-    let validator = Check.String.notEmpty <+> notStartsWithWhiteSpace
+    let validator =
+        GroupValidator(Check.String.notEmpty)
+            .And(notStartsWithWhiteSpace)
+            .Build()
 
     match validator "Test" null with
     | Ok _ -> false
     | Error _ -> true
-
-[<Fact>]
-let ``Can chain Validator's together`` () =
-    let validator =
-        Check.String.notEmpty
-        >=> Check.String.greaterThanLen 7
-
-    let result = validator "Name" ""
-
-    result
-    |> Result.mapError (fun r ->
-        let rMap = ValidationErrors.toMap r
-        rMap.ContainsKey "Name" |> should equal true
-        rMap.["Name"].Length |> should equal 1)
-
-[<Fact>]
-let ``Can compose Validator's together`` () =
-    let validator =
-        Check.String.notEmpty
-        <+> Check.String.greaterThanLen 7
-
-    let result = validator "Name" ""
-
-    result
-    |> Result.mapError (fun r ->
-        let rMap = ValidationErrors.toMap r
-        rMap.ContainsKey "Name" |> should equal true
-        rMap.["Name"].Length |> should equal 2)
-
-[<Fact>]
-let ``Can chain & compose Validator's together`` () =
-    let validator =
-        Check.String.notEmpty
-        >=> (Check.String.pattern "^\S" // does not start with space
-        <+> Check.String.pattern "\S$") // does not end with space
-
-    let result = validator "Name" null
-
-    result
-    |> Result.mapError (fun r ->
-        let rMap = ValidationErrors.toMap r
-        rMap.ContainsKey "Name" |> should equal true
-        rMap.["Name"].Length |> should equal 1)
-    |> ignore
-
-    let result2 = validator "Name" " Validus "
-
-    result2
-    |> Result.mapError (fun r ->
-        let rMap = ValidationErrors.toMap r
-        rMap.ContainsKey "Name" |> should equal true
-        rMap.["Name"].Length |> should equal 2)
-    |> ignore
 
 [<Fact>]
 let ``Can bind ValidationResults`` () =
@@ -107,9 +58,9 @@ let ``Can bind ValidationResults`` () =
 
     let result : Result<string, ValidationErrors> =
         let validator =
-            Check.String.greaterThanLen 2
-            <+> Check.String.lessThanLen 100
-
+            GroupValidator(Check.String.greaterThanLen 2)
+                .And(Check.String.lessThanLen 100)
+                .Build()
 
         validate {
             return! validator "Name" expected.Name
@@ -136,9 +87,10 @@ let ``Validation of record succeeds using computation expression`` () =
     let expected : FakeValidationRecord = { Name = "John"; Age = 1 }
     let result : Result<FakeValidationRecord, ValidationErrors> =
         let nameValidator =
-            Check.String.greaterThanLen 2
-            <+> Check.String.lessThanLen 100
-            <+> Check.String.equals expected.Name
+            GroupValidator(Check.String.greaterThanLen 2)
+                .And(Check.String.lessThanLen 100)
+                .And(Check.String.equals expected.Name)
+                .Build()
 
         validate {
             let! name = nameValidator "Name" expected.Name
@@ -158,16 +110,23 @@ let ``Validation of record with option succeeds`` () =
 
         let ageValidator =
             let validator =
-                Check.Int.greaterThan 0 <+> Check.Int.lessThan 100
+                GroupValidator(Check.Int.greaterThan 0)
+                    .And(Check.Int.lessThan 100)
+                    .Build()
 
-            Check.option
+            Check.optional
                 validator
                 "Age"
                 expected.Age
 
-        FakeValidationRecordWithOption.Create
-        <!> nameValidator
-        <*> ageValidator
+        validate {
+            let! name = nameValidator
+            and! age = ageValidator
+
+            let result = FakeValidationRecordWithOption.Create name age
+
+            return result
+        }
 
     result
     |> Result.bind (fun r -> Ok (r |> should equal expected))
@@ -181,16 +140,23 @@ let ``Validation of record with voption succeeds`` () =
 
         let ageValidator =
             let validator =
-                Check.Int.greaterThan 0 <+> Check.Int.lessThan 100
+                GroupValidator(Check.Int.greaterThan 0)
+                    .And(Check.Int.lessThan 100)
+                    .Build()
 
-            Validators.voptional
+            Check.voptional
                 validator
                 "Age"
                 expected.Age
 
-        FakeValidationRecordWithValueOption.Create
-        <!> nameValidator
-        <*> ageValidator
+        validate {
+            let! name = nameValidator
+            and! age = ageValidator
+
+            let result = FakeValidationRecordWithValueOption.Create name age
+
+            return result
+        }
 
     result
     |> Result.bind (fun r -> Ok (r |> should equal expected))
@@ -201,12 +167,18 @@ let ``Validation of record fails`` () =
     let age = 3
     let result : Result<FakeValidationRecord, ValidationErrors> =
         let nameValidator =
-            Check.String.greaterThanLen 2
-            <+> Check.String.lessThanLen 100
+            GroupValidator(Check.String.greaterThanLen 2)
+                .And(Check.String.lessThanLen 100)
+                .Build()
 
-        FakeValidationRecord.Create
-        <!> nameValidator "Name" name
-        <*> Validators.Int.greaterThan 3 (sprintf "%s must be greater than 3") "Age" age
+        validate {
+            let! name = nameValidator "Name" name
+            and! age = Check.WithMessage.Int.greaterThan 3 (sprintf "%s must be greater than 3") "Age" age
+
+            let result = FakeValidationRecord.Create name age
+
+            return result
+        }
 
     result
     |> Result.mapError (fun r ->
@@ -220,12 +192,13 @@ let ``Validation of record fails with computation expression`` () =
     let age = 3
     let result : Result<FakeValidationRecord, ValidationErrors> =
         let nameValidator =
-            Check.String.greaterThanLen 2
-            <+> Check.String.lessThanLen 100
+            GroupValidator(Check.String.greaterThanLen 2)
+                .And(Check.String.lessThanLen 100)
+                .Build()
 
         validate {
             let! name = nameValidator "Name" name
-            and! age = Validators.Int.greaterThan 3 (sprintf "%s must be greater than 3") "Age" age
+            and! age = Check.WithMessage.Int.greaterThan 3 (sprintf "%s must be greater than 3") "Age" age
             return FakeValidationRecord.Create name age
         }
 
@@ -234,45 +207,3 @@ let ``Validation of record fails with computation expression`` () =
         let rMap = ValidationErrors.toMap r
         (rMap.ContainsKey "Name", rMap.ContainsKey "Age") |> should equal (true, true)
         rMap.["Age"] |> should equal ["Age must be greater than 3"])
-
-type Str16 =
-    private { Str16 : string }
-
-    override x.ToString () = x.Str16
-
-    static member Of field input =
-        input
-        |> Check.String.betweenLen 2 16 field
-        |> Result.map (fun v -> { Str16 = v.Trim() })
-
-[<Fact>]
-let ``Validation supports transformation at the point of marking as optional`` () =
-    let name = Some "pim"
-    let result = Check.option Str16.Of "First Name" name
-
-    result
-    |> Result.bind (fun r -> Ok (r |> should equal (Some { Str16 = "pim" })))
-
-[<Fact>]
-let ``Validation supports transformation at the point of marking as voptional`` () =
-    let name = ValueSome "pim"
-    let result = Validators.voptional Str16.Of "First Name" name
-
-    result
-    |> Result.bind (fun r -> Ok (r |> should equal (ValueSome { Str16 = "pim" })))
-
-[<Fact>]
-let ``Validation supports transformation at the point of marking as required`` () =
-    let name = Some "pim"
-    let result = Check.required Str16.Of "First Name" name
-
-    result
-    |> Result.bind (fun r -> Ok (r |> should equal { Str16 = "pim" }))
-
-[<Fact>]
-let ``Validation supports transformation at the point of marking as vrequired`` () =
-    let name = ValueSome "pim"
-    let result = Check.vrequired Str16.Of "First Name" name
-
-    result
-    |> Result.bind (fun r -> Ok (r |> should equal { Str16 = "pim" }))

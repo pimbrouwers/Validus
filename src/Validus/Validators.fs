@@ -1,102 +1,31 @@
-module Validus
+namespace Validus
 
 open System
-open System.Collections.Generic
 
-// ------------------------------------------------
-// Validation Errors
-// ------------------------------------------------
+/// A validation message for a field
+type ValidationMessage = string -> string
 
-/// A mapping of fields and errors
-type ValidationErrors = private { ValidationErrors : Map<string, string list> } with
-    member internal x.Value = x.ValidationErrors
+/// Given a value, return true/false to indicate validity
+type ValidationRule<'a> = 'a -> bool
 
-let inline private validationErrors x = { ValidationErrors = x }
-
-/// Functions for ValidationErrors type
-module ValidationErrors =
-    /// Create a new ValidationErrors instance from a field  and errors list
-    let create (field : string) (errors : string list) : ValidationErrors =
-        [ field, errors ] |> Map.ofList |> validationErrors
-
-    /// Combine a list of ValidationErrors
-    let collect (errors : ValidationErrors list) =
-        let dict = Dictionary<string, string list>()
-        for e in errors do
-            for x in e.Value do
-                if dict.ContainsKey(x.Key) then dict.[x.Key] <- List.concat [ dict.[x.Key]; x.Value ]
-                else dict.Add(x.Key, x.Value)
-
-        (dict :> seq<_>)
-        |> Seq.map (|KeyValue|)
-        |> Map.ofSeq
-        |> validationErrors
-
-    /// Combine two ValidationErrors instances
-    let merge (e1 : ValidationErrors) (e2 : ValidationErrors) : ValidationErrors =
-        collect [ e1; e2 ]
-
-    /// Unwrap ValidationErrors into a standard Map<string, string list>
-    let toMap (e : ValidationErrors) : Map<string, string list> =
-        e.Value
-
-    /// Unwrap ValidationErrors and collection individual errors into
-    /// string list, excluding keys
-    let toList (e : ValidationErrors) : string list =
-        e
-        |> toMap
-        |> Seq.collect (fun kvp -> kvp.Value)
-        |> List.ofSeq
-
-// ------------------------------------------------
-// Validation Results
-// ------------------------------------------------
-
-/// Functions for ValidationResult type
-module ValidationResult =
-    /// Unpack ValidationResult and feed into validation function
-    let apply
-        (resultFn : Result<'a -> 'b, ValidationErrors>)
-        (result : Result<'a, ValidationErrors>)
-        : Result<'b, ValidationErrors> =
-        match resultFn, result with
-        | Ok fn, Ok x  -> fn x |> Ok
-        | Error e, Ok _   -> Error e
-        | Ok _, Error e   -> Error e
-        | Error e1, Error e2 -> Error (ValidationErrors.merge e1 e2)
-
-    /// Create a tuple form ValidationResult, if two ValidationResult objects
-    /// are in Ok state, otherwise return failure
-    let zip
-        (r1 : Result<'a, ValidationErrors>)
-        (r2 : Result<'b, ValidationErrors>)
-        : Result<'a * 'b, ValidationErrors> =
-        match r1, r2 with
-        | Ok x1res, Ok x2res -> Ok (x1res, x2res)
-        | Error e1, Error e2 -> Error (ValidationErrors.merge e1 e2)
-        | Error e, _         -> Error e
-        | _, Error e         -> Error e
-
-
-// ------------------------------------------------
-// Validators
-// ------------------------------------------------
+/// Given a field name and value, 'a, produces a ValidationResult<'a>
+type Validator<'a, 'b> = string -> 'a -> ValidationResult<'b>
 
 /// Validation rules
 module ValidationRule =
-    let equality<'a when 'a : equality> (equalTo : 'a) : 'a -> bool =
+    let inline equality<'a when 'a : equality> (equalTo : 'a) : ValidationRule<'a> =
         fun v -> v = equalTo
 
-    let inequality<'a when 'a : equality> (notEqualTo : 'a) : 'a -> bool=
+    let inline inequality<'a when 'a : equality> (notEqualTo : 'a) : ValidationRule<'a> =
         fun v -> not(v = notEqualTo)
 
-    let between<'a when 'a : comparison> (min : 'a) (max : 'a) : 'a -> bool =
+    let inline between<'a when 'a : comparison> (min : 'a) (max : 'a) : ValidationRule<'a> =
         fun v -> v >= min && v <= max
 
-    let greaterThan<'a when 'a : comparison> (min : 'a) : 'a -> bool =
+    let inline greaterThan<'a when 'a : comparison> (min : 'a) : ValidationRule<'a> =
         fun v -> v > min
 
-    let lessThan<'a when 'a : comparison> (max : 'a) : 'a -> bool =
+    let inline lessThan<'a when 'a : comparison> (max : 'a) : ValidationRule<'a> =
         fun v -> v < max
 
     let inline betweenLen (min : int) (max : int) (x : ^a) : bool =
@@ -111,42 +40,35 @@ module ValidationRule =
     let inline lessThanLen (max : int) (x : ^a) : bool =
         (lessThan max (^a : (member Length : int) x))
 
-    let strPattern (pattern : string) : string -> bool =
+    let inline strPattern (pattern : string) : ValidationRule<string> =
         fun v -> if isNull v then false else Text.RegularExpressions.Regex.IsMatch(v, pattern)
 
 /// Functions for Validator type
 module Validator =
-    /// Compose two validators
-    let compose
-        (v1 : string -> 'a -> Result<'a, ValidationErrors>)
-        (v2 : string -> 'a -> Result<'a, ValidationErrors>)
-        : string -> 'a -> Result<'a, ValidationErrors> =
-        fun (field : string) (value : 'a) ->
-            match v1 field value with
-            | Ok x -> v2 field x
-            | Error e -> Error e
-
-    /// Merge two Validators
-    let merge
-        (v1 : string -> 'a -> Result<'a, ValidationErrors>)
-        (v2 : string -> 'a -> Result<'a, ValidationErrors>)
-        : string -> 'a -> Result<'a, ValidationErrors> =
-        fun (field : string) (value : 'a) ->
-            match v1 field value, v2 field value with
-            | Ok a, Ok _   -> Ok a
-            | Error e, Ok _   -> Error e
-            | Ok _, Error e   -> Error e
-            | Error e1, Error e2 -> Error (ValidationErrors.merge e1 e2)
-
     /// Create a new Validator
     let create
-        (message : string -> string)
+        (message : ValidationMessage)
         (rule : 'a -> bool)
-        : string -> 'a -> Result<'a, ValidationErrors> =
+        : Validator<'a, 'a> =
         fun (field : string) (value : 'a) ->
             let error = ValidationErrors.create field [ message field ]
             if rule value then Ok value
             else error |> Error
+
+type GroupValidator<'a>(startValidator : Validator<'a, 'a>) =
+    member _.Build() = startValidator
+
+    member _.And(andValidator : Validator<'a, 'a>) =
+        GroupValidator(fun f v ->
+            match startValidator f v, andValidator f v with
+            | Ok a, Ok _   -> Ok a
+            | Error e, Ok _   -> Error e
+            | Ok _, Error e   -> Error e
+            | Error e1, Error e2 -> Error (ValidationErrors.merge e1 e2))
+
+    member _.Then(nextValidator : Validator<'a, 'a>) =
+        GroupValidator(fun f v ->
+            Result.bind (nextValidator f) (startValidator f v))
 
 /// Validation functions
 module Validators =
@@ -154,20 +76,20 @@ module Validators =
         /// Value is equal to provided value
         member _.equals
             (equalTo : 'a)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : 'a)
-            : Result<'a, ValidationErrors> =
+            : ValidationResult<'a> =
             let rule = ValidationRule.equality equalTo
             Validator.create message rule field input
 
         /// Value is not equal to provided value
         member _.notEquals
             (notEqualTo : 'a)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : 'a)
-            : Result<'a, ValidationErrors> =
+            : ValidationResult<'a> =
             let rule = ValidationRule.inequality notEqualTo
             Validator.create message rule field input
 
@@ -178,30 +100,30 @@ module Validators =
         member _.between
             (min : 'a)
             (max : 'a)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : 'a)
-            : Result<'a, ValidationErrors> =
+            : ValidationResult<'a> =
             let rule = ValidationRule.between min max
             Validator.create message rule field input
 
         /// Value is greater than provided min
         member _.greaterThan
             (min : 'a)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : 'a)
-            : Result<'a, ValidationErrors> =
+            : ValidationResult<'a> =
             let rule = ValidationRule.greaterThan min
             Validator.create message rule field input
 
         /// Value is less than provided max
         member _.lessThan
             (max : 'a)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : 'a)
-            : Result<'a, ValidationErrors> =
+            : ValidationResult<'a> =
             let rule = ValidationRule.lessThan max
             Validator.create message rule field input
 
@@ -212,57 +134,57 @@ module Validators =
         member _.betweenLen
             (min : int)
             (max : int)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : string)
-            : Result<string, ValidationErrors> =
+            : ValidationResult<string> =
             let rule = ValidationRule.betweenLen min max
             Validator.create message rule field input
 
         /// Validate string is null or ""
         member _.empty
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : string)
-            : Result<string, ValidationErrors> =
+            : ValidationResult<string> =
             Validator.create message String.IsNullOrWhiteSpace field input
 
         /// Validate string length is equal to provided value
         member _.equalsLen
             (len : int)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : string)
-            : Result<string, ValidationErrors> =
+            : ValidationResult<string> =
             let rule = ValidationRule.equalsLen len
             Validator.create message rule field input
 
         /// Validate string length is greater than provided value
         member _.greaterThanLen
             (min : int)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : string)
-            : Result<string, ValidationErrors> =
+            : ValidationResult<string> =
             let rule = ValidationRule.greaterThanLen min
             Validator.create message rule field input
 
         /// Validate string length is less than provided value
         member _.lessThanLen
             (max : int)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : string)
-            : Result<string, ValidationErrors> =
+            : ValidationResult<string> =
             let rule = ValidationRule.lessThanLen max
             Validator.create message rule field input
 
         /// Validate string is not null or ""
         member _.notEmpty
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : string)
-            : Result<string, ValidationErrors> =
+            : ValidationResult<string> =
             Validator.create
                 message
                 (fun str -> not(String.IsNullOrWhiteSpace (str)))
@@ -272,10 +194,10 @@ module Validators =
         /// Validate string matches regular expression
         member _.pattern
             (pattern : string)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : string)
-            : Result<string, ValidationErrors> =
+            : ValidationResult<string> =
             let rule = ValidationRule.strPattern pattern
             Validator.create message rule field input
 
@@ -284,18 +206,18 @@ module Validators =
 
         /// Validate string is null or ""
         member _.empty
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : Guid)
-            : Result<Guid, ValidationErrors> =
+            : ValidationResult<Guid> =
             Validator.create message (fun guid -> Guid.Empty = guid) field input
 
         /// Validate string is not null or ""
         member _.notEmpty
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : Guid)
-            : Result<Guid, ValidationErrors> =
+            : ValidationResult<Guid> =
             Validator.create message (fun guid -> Guid.Empty <> guid) field input
 
     type ListValidator<'a when 'a : equality>() =
@@ -305,140 +227,67 @@ module Validators =
         member _.betweenLen
             (min : int)
             (max : int)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : ('a) list)
-            : Result<'a list, ValidationErrors> =
+            : ValidationResult<'a list> =
             let rule = ValidationRule.betweenLen min max
             Validator.create message rule field input
 
         /// Validate list is empty
         member _.empty
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : ('a) list)
-            : Result<'a list, ValidationErrors> =
+            : ValidationResult<'a list> =
             Validator.create message List.isEmpty field input
 
         /// Validate list length is equal to provided value
         member _.equalsLen
             (len : int)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : ('a) list)
-            : Result<'a list, ValidationErrors> =
+            : ValidationResult<'a list> =
             let rule = ValidationRule.equalsLen len
             Validator.create message rule field input
 
         /// Validate list contains element matching predicate
         member _.exists
             (predicate : 'a -> bool)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : ('a) list)
-            : Result<('a) list, ValidationErrors> =
+            : ValidationResult<('a) list> =
             Validator.create message (List.exists predicate) field input
 
         /// Validate list length is greater than provided value
         member _.greaterThanLen
             (min : int)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : ('a) list)
-            : Result<'a list, ValidationErrors> =
+            : ValidationResult<'a list> =
             let rule = ValidationRule.greaterThanLen min
             Validator.create message rule field input
 
         /// Validate list length is less than provided value
         member _.lessThanLen
             (max : int)
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : ('a) list)
-            : Result<'a list, ValidationErrors> =
+            : ValidationResult<'a list> =
             let rule = ValidationRule.lessThanLen max
             Validator.create message rule field input
 
         /// Validate list is not empty
         member _.notEmpty
-            (message : string -> string)
+            (message : ValidationMessage)
             (field : string)
             (input : ('a) list)
-            : Result<'a list, ValidationErrors> =
+            : ValidationResult<'a list> =
             Validator.create message (fun x -> not(List.isEmpty x)) field input
-
-    /// Execute validator if 'a is Some, otherwise return Ok 'a
-    let optional
-        (validator : string -> 'a -> Result<'b, ValidationErrors>)
-        (field : string) (value : 'a option)
-        : Result<'b option, ValidationErrors> =
-        match value with
-        | Some v -> validator field v |> Result.map (fun v -> Some v)
-        | None   -> Ok None
-
-    /// Execute validator if 'a is ValueSome, otherwise return Ok 'a
-    let voptional
-        (validator : string -> 'a -> Result<'b, ValidationErrors>)
-        (field : string) (value : 'a voption)
-        : Result<'b voption, ValidationErrors> =
-        match value with
-        | ValueSome v -> validator field v |> Result.map (fun v -> ValueSome v)
-        | ValueNone   -> Ok ValueNone
-
-    /// Execute validator if 'a is Some, otherwise return Failure
-    let required
-        (validator : string -> 'a -> Result<'b, ValidationErrors>)
-        (message : string -> string)
-        (field : string)
-        (input : 'a option)
-        : Result<'b, ValidationErrors> =
-        match input with
-        | Some x -> validator field x
-        | None   -> Error (ValidationErrors.create field [ message field ])
-
-    /// Execute validator if 'a is Some, otherwise return Failure
-    let vrequired
-        (validator : string -> 'a -> Result<'b, ValidationErrors>)
-        (message : string -> string)
-        (field : string)
-        (value : 'a voption)
-        : Result<'b, ValidationErrors> =
-        match value with
-        | ValueSome v -> validator field v
-        | ValueNone   -> Error (ValidationErrors.create field [ message field ])
-
-    /// DateTime validators
-    let DateTime = ComparisonValidator<DateTime>()
-
-    /// DateTimeOffset validators
-    let DateTimeOffset = ComparisonValidator<DateTimeOffset>()
-
-    /// decimal validators
-    let Decimal = ComparisonValidator<decimal>()
-
-    /// float validators
-    let Float = ComparisonValidator<float>()
-
-    /// System.Guid validators
-    let Guid = GuidValidator()
-
-    /// int32 validators
-    let Int = ComparisonValidator<int>()
-
-    /// int16 validators
-    let Int16 = ComparisonValidator<int16>()
-
-    /// int64 validators
-    let Int64 = ComparisonValidator<int64>()
-
-    /// string validators
-    let String = StringValidator()
-
-    /// System.TimeSpan validators
-    let TimeSpan = ComparisonValidator<TimeSpan>()
-
-    /// List validators
-    let List<'a when 'a : equality> = ListValidator<'a>()
 
     module Default =
         type DefaultEqualityValidator<'a when 'a
@@ -588,151 +437,3 @@ module Validators =
             member _.notEmpty (field : string) (input : 'a list) =
                 let msg field = sprintf "'%s' must not be empty" field
                 x.notEmpty msg field input
-
-        /// Execute validator if 'a is Some, otherwise return Failure with the
-        /// default error message
-        let required
-            (validator : string -> 'a -> Result<'b, ValidationErrors>)
-            (field : string)
-            (value : 'a option) =
-            let msg field = sprintf "'%s' is required" field
-            required validator msg field value
-
-        /// Execute validator if 'a is Some, otherwise return Failure with the
-        /// default error message
-        let vrequired
-            (validator : string -> 'a -> Result<'b, ValidationErrors>)
-            (field : string)
-            (value : 'a ValueOption) =
-            let msg field = sprintf "'%s' is required" field
-            vrequired validator msg field value
-
-        /// DateTime validators with the default error messages
-        let DateTime = DefaultComparisonValidator<DateTime>(DateTime)
-
-        /// DateTimeOffset validators with the default error messages
-        let DateTimeOffset = DefaultComparisonValidator<DateTimeOffset>(DateTimeOffset)
-
-        /// decimal validators with the default error messages
-        let Decimal = DefaultComparisonValidator<decimal>(Decimal)
-
-        /// float validators with the default error messages
-        let Float = DefaultComparisonValidator<float>(Float)
-
-        /// System.Guid validators with the default error message
-        let Guid = DefaultGuidValidator(Guid)
-
-        /// int32 validators with the default error messages
-        let Int = DefaultComparisonValidator<int>(Int)
-
-        /// int16 validators with the default error messages
-        let Int16 = DefaultComparisonValidator<int16>(Int16)
-
-        /// int64 validators with the default error messages
-        let Int64 = DefaultComparisonValidator<int64>(Int64)
-
-        /// string validators with the default error messages
-        let String = DefaultStringValidator(String)
-
-        /// System.TimeSpan validators with the default error messages
-        let TimeSpan = DefaultComparisonValidator<TimeSpan>(TimeSpan)
-
-        /// List validators
-        let List<'a when 'a : equality> = DefaultListValidator<'a>(List)
-
-
-// ------------------------------------------------
-// Operators
-// ------------------------------------------------
-
-/// Custom operators for ValidationResult
-module Operators =
-    /// Alias for ValidationResult.apply
-    let inline (<*>) f x = ValidationResult.apply f x
-
-    /// Alias for Result.map
-    let inline (<!>) f x = Result.map f x
-
-    /// Alias for ValidationResult.bind
-    let inline (>>=) x f = Result.bind f x
-
-    /// Alias for Validator.chain
-    let inline (>=>) v1 v2 = Validator.compose v1 v2
-
-    /// Alias for Validator.compose
-    let inline (<+>) v1 v2 = Validator.merge v1 v2
-
-    module Check =
-        let option = Validators.optional
-        let voption = Validators.voptional
-        let required = Validators.Default.required
-        let vrequired = Validators.Default.vrequired
-
-        let DateTime = Validators.Default.DateTime
-        let DateTimeOffset = Validators.Default.DateTimeOffset
-        let Decimal = Validators.Default.Decimal
-        let Float = Validators.Default.Float
-        let Guid = Validators.Default.Guid
-        let Int = Validators.Default.Int
-        let Int16 = Validators.Default.Int16
-        let Int64 = Validators.Default.Int64
-        let String = Validators.Default.String
-        let TimeSpan = Validators.Default.TimeSpan
-        let List<'a when 'a : equality> = Validators.Default.List
-
-
-// ------------------------------------------------
-// Builder
-// ------------------------------------------------
-
-/// Computation expression for ValidationResult<_>.
-type ValidationResultBuilder() =
-    member _.Return (value) = Ok value
-
-    member _.ReturnFrom (result) = result
-
-    member _.Delay(fn) = fn
-
-    member _.Run(fn) = fn ()
-
-    member _.Bind (result, binder) = Result.bind binder result
-
-    member x.Zero () = x.Return ()
-
-    member x.TryWith (result, exceptionHandler) =
-        try x.ReturnFrom (result)
-        with ex -> exceptionHandler ex
-
-    member x.TryFinally (result, fn) =
-        try x.ReturnFrom (result)
-        finally fn ()
-
-    member x.Using (disposable : #IDisposable, fn) =
-        x.TryFinally(fn disposable, fun _ ->
-            match disposable with
-            | null -> ()
-            | disposable -> disposable.Dispose())
-
-    member x.While (guard,  fn) =
-        if not (guard())
-            then x.Zero ()
-        else
-            do fn () |> ignore
-            x.While(guard, fn)
-
-    member x.For (items : seq<_>, fn) =
-        x.Using(items.GetEnumerator(), fun enum ->
-            x.While(enum.MoveNext,
-                x.Delay (fun () -> fn enum.Current)))
-
-    member x.Combine (result, fn) =
-        x.Bind(result, fun () -> fn ())
-
-    member _.MergeSources (r1, r2) =
-        ValidationResult.zip r1 r2
-
-    member _.BindReturn (result, mapping) =
-        Result.map mapping result
-
-/// Validate computation expression
-let validate = ValidationResultBuilder()

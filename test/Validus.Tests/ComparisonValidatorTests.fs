@@ -4,7 +4,7 @@ open FsCheck
 open FsCheck.Xunit
 open Validus
 
-let private TestValidator = Validators.Default.Int
+let private TestValidator = Check.Int
 
 [<Property>]
 let ``(TestValidator.between min max) should produce Success`` (NonZeroInt min) =

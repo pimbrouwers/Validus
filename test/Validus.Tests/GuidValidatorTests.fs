@@ -5,7 +5,7 @@ open FsCheck
 open FsCheck.Xunit
 open Validus
 
-let private TestValidator = Validators.Default.Guid
+let private TestValidator = Check.Guid
 let private testGuid = Guid.NewGuid ()
 
 [<Property>]
