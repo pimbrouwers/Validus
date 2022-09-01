@@ -535,7 +535,7 @@ open Validus
 // Define a validator which checks if a string matches the
 // provided regex displaying the standard error message.
 let stringIsChars =
-  Check.String.pattern "[a-z]" "fieldName"
+  Check.String.pattern "[a-z]+" "fieldName"
 
 stringIsChars "validus"
 
