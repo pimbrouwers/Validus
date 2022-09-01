@@ -160,7 +160,7 @@ let fooValidator =
 
 ## Combining Validators
 
-Complex validator chains and waterfalls can be created by combining validators together using the `ValidatorGroup` API.
+Complex validator chains and waterfalls can be created by combining validators together using the `ValidatorGroup` API. Alternatively, a full suite of [operators](#custom-operators) are available, for those who prefer that style of syntax.
 
 ```f#
 open System.Net.Mail
