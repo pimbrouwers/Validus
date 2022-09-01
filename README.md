@@ -385,8 +385,6 @@ let lessThan100Custom =
 lessThan100Custom 12 // Result<int, ValidationErrors>
 ```
 
-### String specific validators
-
 ## [`betweenLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L126)
 
 Applies to: `string`
