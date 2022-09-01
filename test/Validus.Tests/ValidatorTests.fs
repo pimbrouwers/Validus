@@ -1,11 +1,8 @@
-﻿module Validus.ValidationResult.Tests
+﻿module Validus.Validator.Tests
 
-open System
-open System.Net.Mail
 open Xunit
 open FsUnit.Xunit
 open Validus
-open Validus.Operators
 
 type FakeValidationRecord =
     { Name : string; Age : int }

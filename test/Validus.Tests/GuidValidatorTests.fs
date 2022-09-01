@@ -1,7 +1,6 @@
 ﻿module Validus.GuidValidator.Tests
 
 open System
-open FsCheck
 open FsCheck.Xunit
 open Validus
 

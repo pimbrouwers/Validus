@@ -1,6 +1,5 @@
 ﻿module Validus.ListValidator.Tests
 
-open FsCheck
 open FsCheck.Xunit
 open Validus
 
