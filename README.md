@@ -205,7 +205,7 @@ let result =
     |> List.map (emailValidator "Login email")
 ```
 
-## Custom Operators
+### Custom Operators
 
 TODO Abel
 
