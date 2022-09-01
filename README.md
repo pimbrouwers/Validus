@@ -81,6 +81,8 @@ module Person =
         }
 ```
 
+> Note: This is for demo purposes only, it likely isn't advisable to attempt to validate emails using a regular expression. Instead, use [System.Net.MailAddress](#example-1-email-address-value-object).
+
 And, using the validator:
 
 ```fsharp
@@ -99,34 +101,10 @@ match validatePersonDto dto with
     |> Seq.iter (printfn "%s")
 ```
 
-## Custom Validators
-
-Custom validators can be created by combining built-in validators together using `GroupValidator` API, as well as creating bespoke validator's using `Validator.create`.
-
-### Combining validators
+## Creating A Custom Validator
 
 ```f#
-open Validus
-
-let emailValidator =
-    let emailPatternValidator =
-        let msg = sprintf "Please provide a valid %s"
-        Check.WithMessage.String.pattern "[^@]+@[^\.]+\..+" msg
-
-    GroupValidator(Check.String.betweenLen 8 512)
-        .And(emailPatternValidator)
-        .Build()
-
-"fake@test"
-|> emailValidator "Login email"
-// Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
-```
-
-> Note: This is for demo purposes only, it likely isn't advisable to attempt to validate emails using a regular expression. Instead, use [System.Net.MailAddress](#example-1-email-address-value-object).
-
-### Creating a bespoke validator
-
-```f#
+open System.Net.Mail
 open Validus
 
 let fooValidator =
@@ -139,34 +117,63 @@ let fooValidator =
 // Outputs: [ "Test string", [ "Test string must be a string that matches 'foo'" ] ]
 ```
 
-## Validating Collections
+## Combining Validators
 
-Applying validator(s) to a set of items will result in a `Result<'a, ValidationErrors> seq`
+Complex validator chains and waterfalls can be created by combining validators together using the `GroupValidator` API.
 
-```fsharp
+```f#
+open System.Net.Mail
 open Validus
 
-let emailValidator =
-    let emailPatternValidator =
-        let msg = sprintf "Please provide a valid %s"
-        Check.WithMessage.String.pattern "[^@]+@[^\.]+\..+" msg
+let msg = sprintf "Please provide a valid %s"
 
+let emailPatternValidator =
+    Check.WithMessage.String.pattern "[^@]+@[^\.]+\..+" msg
+
+// A custom validator that uses System.Net.Mail to validate email
+let mailAddressValidator =
+    let rule (x : string) =
+        if x = "" then false
+        else
+            try
+                let addr = MailAddress(x)
+                if addr.Address = x then true
+                else false
+            with
+            | :? FormatException -> false
+
+    Validator.create msg rule
+
+let emailValidator =
     GroupValidator(Check.String.betweenLen 8 512)
         .And(emailPatternValidator)
+        .Then(mailAddressValidator) // only executes when prior two steps are `Ok`
         .Build()
 
+"fake@test"
+|> emailValidator "Login email"
+```
+
+We can use any validator, or combination of validators to validate collections:
+
+```fsharp
 let emails = [ "fake@test"; "bob@fsharp.org"; "x" ]
 
 let result =
     emails
     |> List.map (emailValidator "Login email")
-
-// Outputs: [ "Login email", [ "Login email must be a valid email" ] ]
 ```
 
-## Constrained Primitives (i.e., value types/objects)
+## Custom Operators
 
-It is generally a good idea to create [value objects](https://blog.ploeh.dk/2015/01/19/from-primitive-obsession-to-domain-modelling/) to represent individual data points that are more classified than the primitive types usually used to represent them.
+TODO Abel
+
+```fsharp
+```
+
+## Value Objects
+
+It is generally a good idea to create [value objects](https://blog.ploeh.dk/2015/01/19/from-primitive-obsession-to-domain-modelling/), sometimes referred to a *value types* or *constrained primitives*, to represent individual data points that are more classified than the primitive types usually used to represent them.
 
 ### Example 1: Email Address Value Object
 
@@ -234,14 +241,14 @@ open Validus
 let equalsFoo =
   Check.String.equals "foo" "fieldName"
 
-equalsFoo "bar" // Result<string, ValidationErrors>
+equalsFoo "bar"
 
 // Define a validator which checks if a string equals
 // "foo" displaying a custom error message (string -> string).
 let equalsFooCustom =
   Check.WithMessage.String.equals "foo" (sprintf "%s must equal the word 'foo'") "fieldName"
 
-equalsFooCustom "bar" // Result<string, ValidationErrors>
+equalsFooCustom "bar"
 ```
 
 ## [`notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
@@ -256,14 +263,14 @@ open Validus
 let notEqualsFoo =
   Check.String.notEquals "foo" "fieldName"
 
-notEqualsFoo "bar" // Result<string, ValidationErrors>
+notEqualsFoo "bar"
 
 // Define a validator which checks if a string is not
 // equal to "foo" displaying a custom error message (string -> string)
 let notEqualsFooCustom =
   Check.WithMessage.String.notEquals "foo" (sprintf "%s must not equal the word 'foo'") "fieldName"
 
-notEqualsFooCustom "bar" // Result<string, ValidationErrors>
+notEqualsFooCustom "bar"
 ```
 
 ## [`between`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L110) (inclusive)
@@ -346,14 +353,14 @@ open Validus
 let between1and100Chars =
   Check.String.betweenLen 1 100 "fieldName"
 
-between1and100Chars "validus" // Result<string, ValidationErrors>
+between1and100Chars "validus"
 
 // Define a validator which checks if a string is between
 // 1 and 100 chars displaying a custom error message.
 let between1and100CharsCustom =
   Check.WithMessage.String.betweenLen 1 100 (sprintf "%s must be between 1 and 100 chars") "fieldName"
 
-between1and100CharsCustom "validus" // Result<string, ValidationErrors>
+between1and100CharsCustom "validus"
 ```
 
 ## [`equalsLen`](https://github.com/pimbrouwers/Validus/blob/e555cc01f41f2d717ecec32fcb46616dca7243e8/src/Validus/Validus.fs#L219)
@@ -368,14 +375,14 @@ open Validus
 let equals100Chars =
   Check.String.equalsLen 100 "fieldName"
 
-equals100Chars "validus" // Result<string, ValidationErrors>
+equals100Chars "validus"
 
 // Define a validator which checks if a string is equals to
 // 100 chars displaying a custom error message.
 let equals100CharsCustom =
   Check.WithMessage.String.equalsLen 100 (sprintf "%s must be 100 chars") "fieldName"
 
-equals100CharsCustom "validus" // Result<string, ValidationErrors>
+equals100CharsCustom "validus"
 ```
 
 ## [`greaterThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L136)
@@ -390,14 +397,14 @@ open Validus
 let greaterThan100Chars =
   Check.String.greaterThanLen 100 "fieldName"
 
-greaterThan100Chars "validus" // Result<string, ValidationErrors>
+greaterThan100Chars "validus"
 
 // Define a validator which checks if a string is greater than
 // 100 chars displaying a custom error message.
 let greaterThan100CharsCustom =
   Check.WithMessage.String.greaterThanLen 100 (sprintf "%s must be greater than 100 chars") "fieldName"
 
-greaterThan100CharsCustom "validus" // Result<string, ValidationErrors>
+greaterThan100CharsCustom "validus"
 ```
 
 ## [`lessThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L141)
@@ -412,14 +419,14 @@ open Validus
 let lessThan100Chars =
   Check.String.lessThanLen 100 "fieldName"
 
-lessThan100Chars "validus" // Result<string, ValidationErrors>
+lessThan100Chars "validus"
 
 // Define a validator which checks if a string is less tha
 // 100 chars displaying a custom error message.
 let lessThan100CharsCustom =
   Check.WithMessage.String.lessThanLen 100 (sprintf "%s must be less than 100 chars") "fieldName"
 
-lessThan100CharsCustom "validus" // Result<string, ValidationErrors>
+lessThan100CharsCustom "validus"
 ```
 
 ## [`empty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L131)
@@ -434,14 +441,14 @@ open Validus
 let stringIsEmpty =
   Check.String.empty "fieldName"
 
-stringIsEmpty "validus" // Result<string, ValidationErrors>
+stringIsEmpty "validus"
 
 // Define a validator which checks if a string is empty
 // displaying a custom error message.
 let stringIsEmptyCustom =
   Check.WithMessage.String.empty (sprintf "%s must be empty") "fieldName"
 
-stringIsEmptyCustom "validus" // Result<string, ValidationErrors>
+stringIsEmptyCustom "validus"
 ```
 
 ## [`notEmpty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L146)
@@ -456,14 +463,14 @@ open Validus
 let stringIsNotEmpty =
   Check.String.notEmpty "fieldName"
 
-stringIsNotEmpty "validus" // Result<string, ValidationErrors>
+stringIsNotEmpty "validus"
 
 // Define a validator which checks if a string is not empty
 // displaying a custom error message.
 let stringIsNotEmptyCustom =
   Check.WithMessage.String.notEmpty (sprintf "%s must not be empty") "fieldName"
 
-stringIsNotEmptyCustom "validus" // Result<string, ValidationErrors>
+stringIsNotEmptyCustom "validus"
 ```
 
 ## [`pattern`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L151) (Regular Expressions)
@@ -478,14 +485,14 @@ open Validus
 let stringIsChars =
   Check.String.pattern "[a-z]" "fieldName"
 
-stringIsChars "validus" // Result<string, ValidationErrors>
+stringIsChars "validus"
 
 // Define a validator which checks if a string matches the
 // provided regex displaying a custom error message.
 let stringIsCharsCustom =
   Check.WithMessage.String.pattern "[a-z]" (sprintf "%s must follow the pattern [a-z]") "fieldName"
 
-stringIsCharsCustom "validus" // Result<string, ValidationErrors>
+stringIsCharsCustom "validus"
 ```
 
 ## Find a bug?

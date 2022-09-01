@@ -1,7 +1,7 @@
 namespace Validus
 
 module Operators =
-    // TODO touch up by Abel
+    // TODO Abel
     let map (f: Validator<'a, 'b>) (g: 'b -> 'c): Validator<'a, 'c> =
         fun a b -> Result.map g (f a b)
 
