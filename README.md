@@ -156,7 +156,6 @@ let fooValidator =
 
 "bar"
 |> fooValidator "Test string"
-// Outputs: [ "Test string", [ "Test string must be a string that matches 'foo'" ] ]
 ```
 
 ## Combining Validators
