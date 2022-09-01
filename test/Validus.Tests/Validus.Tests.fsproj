@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="GuidValidatorTests.fs" />
     <Compile Include="ValidationErrorsTests.fs" />
-    <Compile Include="ValidationResultTests.fs" />
+    <Compile Include="ValidatorTests.fs" />
+    <Compile Include="GuidValidatorTests.fs" />
     <Compile Include="EqualityValidatorTests.fs" />
     <Compile Include="ComparisonValidatorTests.fs" />
     <Compile Include="StringValidatorTests.fs" />

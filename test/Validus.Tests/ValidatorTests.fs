@@ -1,10 +1,11 @@
 ﻿module Validus.ValidationResult.Tests
 
 open System
+open System.Net.Mail
 open Xunit
+open FsUnit.Xunit
 open Validus
 open Validus.Operators
-open FsUnit.Xunit
 
 type FakeValidationRecord =
     { Name : string; Age : int }
@@ -207,3 +208,55 @@ let ``Validation of record fails with computation expression`` () =
         let rMap = ValidationErrors.toMap r
         (rMap.ContainsKey "Name", rMap.ContainsKey "Age") |> should equal (true, true)
         rMap.["Age"] |> should equal ["Age must be greater than 3"])
+
+[<Fact>]
+let ``GroupValidator works with both And() and Then()`` () =
+
+    let emailPatternValidator =
+        let msg = sprintf "Please provide a valid %s"
+        Check.WithMessage.String.pattern "[^@]+@[^\.]+\..+" msg
+
+    let notEqualsValidator =
+        let msg = sprintf "%s must not equal fake@test.com"
+        let rule (x : string) =
+            x <> "fake" &&
+            x <> "fake@test" &&
+            x <> "fake@test.com"
+
+        Validator.create msg rule
+
+    let emailValidator =
+        GroupValidator(Check.String.betweenLen 8 512)
+            .And(emailPatternValidator)
+            .Then(notEqualsValidator)
+            .Build()
+
+    // too short failure
+    "fake"
+    |> emailValidator "Login"
+    |> Result.mapError (fun r ->
+        let rMap = ValidationErrors.toMap r
+        rMap.ContainsKey "Login" |> should equal true
+        rMap.["Login"] |> should equal [
+            "'Login' must be between 8 and 512 characters"
+            "Please provide a valid Login" ])
+    |> ignore
+
+    // pattern failure
+    "fake@test"
+    |> emailValidator "Login"
+    |> Result.mapError (fun r ->
+        let rMap = ValidationErrors.toMap r
+        rMap.ContainsKey "Login" |> should equal true
+        rMap.["Login"] |> should equal [ "Please provide a valid Login" ])
+    |> ignore
+
+    // notEquals failure
+    "fake@test.com"
+    |> emailValidator "Login"
+    |> Result.mapError (fun r ->
+        let rMap = ValidationErrors.toMap r
+        rMap.ContainsKey "Login" |> should equal true
+        rMap.["Login"].Length |> should equal 1
+        rMap.["Login"] |> should equal ["Login must not equal fake@test.com"] )
+    |> ignore
