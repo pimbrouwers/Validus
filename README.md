@@ -287,7 +287,8 @@ equalsFoo "bar"
 // Define a validator which checks if a string equals
 // "foo" displaying a custom error message (string -> string).
 let equalsFooCustom =
-  Check.WithMessage.String.equals "foo" (sprintf "%s must equal the word 'foo'") "fieldName"
+  let msg = sprintf "%s must equal the word 'foo'" "fieldName"
+  Check.WithMessage.String.equals "foo" msg
 
 equalsFooCustom "bar"
 ```
@@ -309,7 +310,8 @@ notEqualsFoo "bar"
 // Define a validator which checks if a string is not
 // equal to "foo" displaying a custom error message (string -> string)
 let notEqualsFooCustom =
-  Check.WithMessage.String.notEquals "foo" (sprintf "%s must not equal the word 'foo'") "fieldName"
+  let msg = sprintf "%s must not equal the word 'foo'" "fieldName"
+  Check.WithMessage.String.notEquals "foo" msg
 
 notEqualsFooCustom "bar"
 ```
@@ -331,7 +333,8 @@ between1and100 12 // Result<int, ValidationErrors>
 // Define a validator which checks if an int is between
 // 1 and 100 (inclusive) displaying a custom error message.
 let between1and100Custom =
-  Check.WithMessage.Int.between 1 100 (sprintf "%s must be between 1 and 100") "fieldName"
+  let msg = sprintf "%s must be between 1 and 100" "fieldName"
+  Check.WithMessage.Int.between 1 100 msg
 
 between1and100Custom 12 // Result<int, ValidationErrors>
 ```
@@ -353,7 +356,8 @@ greaterThan100 12 // Result<int, ValidationErrors>
 // Define a validator which checks if an int is greater than
 // 100 displaying a custom error message.
 let greaterThan100Custom =
-  Check.WithMessage.Int.greaterThan 100 (sprintf "%s must be greater than 100") "fieldName"
+  let msg = sprintf "%s must be greater than 100" "fieldName"
+  Check.WithMessage.Int.greaterThan 100 msg
 
 greaterThan100Custom 12 // Result<int, ValidationErrors>
 ```
@@ -375,7 +379,8 @@ lessThan100 12 // Result<int, ValidationErrors>
 // Define a validator which checks if an int is less than
 // 100 displaying a custom error message.
 let lessThan100Custom =
-  Check.WithMessage.Int.lessThan 100 (sprintf "%s must be less than 100") "fieldName"
+  let msg = sprintf "%s must be less than 100" "fieldName"
+  Check.WithMessage.Int.lessThan 100 msg
 
 lessThan100Custom 12 // Result<int, ValidationErrors>
 ```
@@ -399,7 +404,8 @@ between1and100Chars "validus"
 // Define a validator which checks if a string is between
 // 1 and 100 chars displaying a custom error message.
 let between1and100CharsCustom =
-  Check.WithMessage.String.betweenLen 1 100 (sprintf "%s must be between 1 and 100 chars") "fieldName"
+  let msg = sprintf "%s must be between 1 and 100 chars" "fieldName"
+  Check.WithMessage.String.betweenLen 1 100 msg
 
 between1and100CharsCustom "validus"
 ```
@@ -421,7 +427,8 @@ equals100Chars "validus"
 // Define a validator which checks if a string is equals to
 // 100 chars displaying a custom error message.
 let equals100CharsCustom =
-  Check.WithMessage.String.equalsLen 100 (sprintf "%s must be 100 chars") "fieldName"
+  let msg = sprintf "%s must be 100 chars" "fieldName"
+  Check.WithMessage.String.equalsLen 100 msg
 
 equals100CharsCustom "validus"
 ```
@@ -443,7 +450,8 @@ greaterThan100Chars "validus"
 // Define a validator which checks if a string is greater than
 // 100 chars displaying a custom error message.
 let greaterThan100CharsCustom =
-  Check.WithMessage.String.greaterThanLen 100 (sprintf "%s must be greater than 100 chars") "fieldName"
+  let msg = sprintf "%s must be greater than 100 chars" "fieldName"
+  Check.WithMessage.String.greaterThanLen 100 msg
 
 greaterThan100CharsCustom "validus"
 ```
@@ -465,7 +473,8 @@ lessThan100Chars "validus"
 // Define a validator which checks if a string is less tha
 // 100 chars displaying a custom error message.
 let lessThan100CharsCustom =
-  Check.WithMessage.String.lessThanLen 100 (sprintf "%s must be less than 100 chars") "fieldName"
+  let msg = sprintf "%s must be less than 100 chars" "fieldName"
+  Check.WithMessage.String.lessThanLen 100 msg
 
 lessThan100CharsCustom "validus"
 ```
@@ -487,7 +496,8 @@ stringIsEmpty "validus"
 // Define a validator which checks if a string is empty
 // displaying a custom error message.
 let stringIsEmptyCustom =
-  Check.WithMessage.String.empty (sprintf "%s must be empty") "fieldName"
+  let msg = sprintf "%s must be empty" "fieldName"
+  Check.WithMessage.String.empty msg
 
 stringIsEmptyCustom "validus"
 ```
@@ -509,7 +519,8 @@ stringIsNotEmpty "validus"
 // Define a validator which checks if a string is not empty
 // displaying a custom error message.
 let stringIsNotEmptyCustom =
-  Check.WithMessage.String.notEmpty (sprintf "%s must not be empty") "fieldName"
+  let msg = sprintf "%s must not be empty" "fieldName"
+  Check.WithMessage.String.notEmpty msg
 
 stringIsNotEmptyCustom "validus"
 ```
@@ -531,7 +542,8 @@ stringIsChars "validus"
 // Define a validator which checks if a string matches the
 // provided regex displaying a custom error message.
 let stringIsCharsCustom =
-  Check.WithMessage.String.pattern "[a-z]" (sprintf "%s must follow the pattern [a-z]") "fieldName"
+  let msg = sprintf "%s must follow the pattern [a-z]" "fieldName"
+  Check.WithMessage.String.pattern "[a-z]" msg
 
 stringIsCharsCustom "validus"
 ```
