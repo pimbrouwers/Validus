@@ -7,12 +7,12 @@ Validus is a composable validation library for F#, with built-in validators for 
 
 ## Key Features
 
-- Composable validation.
+- [Composable](#combining-validators) validation.
 - [Built-in](#built-in-validators) validators for most primitive types.
-- Easily extended through [custom-validators](#custom-validators).
-- Infix [operators](#operators) to provide clean syntax or.
-- [Applicative computation expression](https://docs.microsoft.com/en-us/dotnet/fsharp/whats-new/fsharp-50#applicative-computation-expressions) (`validate { ... }`).
-- Excellent for creating [constrained-primitives](#constrained-primitives) (i.e., value objects).
+- Easily extended through [custom-validators](#creating-a-custom-validators).
+- Infix [operators](#custom-operators) to provide clean composition syntax, via `Validus.Operators`.
+- [Applicative computation expression](#validating-complex-types).
+- Excellent for creating [value objects](#value-object) (i.e., cpnstrained primitives).
 
 ## Quick Start
 
@@ -99,6 +99,48 @@ match validatePersonDto dto with
     e
     |> ValidationErrors.toList
     |> Seq.iter (printfn "%s")
+```
+
+## Validating Complex Types
+
+Included in Validus is an [applicative computation expression](https://docs.microsoft.com/en-us/dotnet/fsharp/whats-new/fsharp-50#applicative-computation-expressions), which in this case allow validation errors to be accumulated as validators are executed.
+
+
+
+```f#
+open Validus
+
+type PersonDto =
+    { FirstName : string
+      LastName  : string
+      Age       : int option }
+
+type Name =
+    { First : string
+      Last  : string }
+
+type Person =
+    { Name      : Name
+      Age       : int option }
+
+module Person =
+    let ofDto (dto : PersonDto) =
+        let nameValidator = Check.String.betweenLen 3 64
+
+        let firstNameValidator =
+            GroupValidator(nameValidator)
+                .Then(Check.String.notEquals dto.LastName)
+                .Build()
+
+        validate {
+          let! first = firstNameValidator "First name" dto.FirstName
+          and! last = nameValidator "Last name" dto.LastName
+          and! age = Check.optional (Check.Int.between 1 120) "Age" dto.Age
+
+          return {
+              Name = { First = first; Last = last }
+              Age = age }
+        }
 ```
 
 ## Creating A Custom Validator
