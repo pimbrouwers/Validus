@@ -51,7 +51,7 @@ module Person =
         let emailValidator =
             let emailPatternValidator =
                 let msg = sprintf "Please provide a valid %s"
-                Check.WithMessage.String.pattern "[^@]+@[^\.]+\..+" msg
+                Check.WithMessage.String.pattern @"[^@]+@[^\.]+\..+" msg
 
             ValidatorGroup(Check.String.betweenLen 8 512)
                 .And(emailPatternValidator)
@@ -169,7 +169,7 @@ open Validus
 let msg = sprintf "Please provide a valid %s"
 
 let emailPatternValidator =
-    Check.WithMessage.String.pattern "[^@]+@[^\.]+\..+" msg
+    Check.WithMessage.String.pattern @"[^@]+@[^\.]+\..+" msg
 
 // A custom validator that uses System.Net.Mail to validate email
 let mailAddressValidator =
