@@ -1,5 +1,6 @@
 namespace Validus
 
+[<RequireQualifiedAccess>]
 module Check =
     open System
     open Validators
