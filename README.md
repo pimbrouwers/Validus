@@ -207,6 +207,23 @@ let result =
 
 ### Custom Operators
 
+| Operator | Description |
+| -------- | ----------- |
+| `<+>` | Compose two validators of equal types |
+| `*\|*` | Map the `Ok` result of a validator, high precedence, for use with choice `<\|>`. |
+| `*\|` | Set the `Ok` result of a validator to a fixed value, high precedence, for use with choice `<\|>`. |
+| `>>\|` | Map the `Ok` result of a validator, low precedence, for use in chained validation |
+| `>\|` | Set the `Ok` result of a validator to a fixed value, low precedence, for use in chained validation |
+| `>>=` | Bind the `Ok` result of a validator with a one-argument function that returns a Result |
+| `<<=` | Reverse-bind the `Ok` result of a validator with a one-argument function that returns a Result |
+| `>>%` | Set the `Ok` result of a validator to a fixed Result value |
+| `<\|>` | Introduce choice: if the rh-side validates `Ok`, pick that result, otherwise, continue with the next validator |
+| `>=>` | Kleisli-bind two validators. Other than Compose `<+>`, this can change the result type. |
+| `<=<` | Reverse kleisli-bind two validators (rh-side is evaluated first). Other than Compose `<+>`, this can change the result type. |
+| `.>>` | Compose two validators, but keep the result of the lh-side. Ignore the result of the rh-side, unless it returns an Error. |
+| `>>.` | Compose two validators, but keep the result of the rh-side. Ignore the result of the lh-side, unless it returns an Error. |
+| `.>>.` | Compose two validators, and keep the result of both sides as a tuple. |
+
 Recreating the example code above using the combinator operators:
 
 ```fsharp
@@ -234,9 +251,9 @@ let mailAddressValidator =
     Validator.create msg rule
 
 let emailValidator =
-    Check.String.betweenLen 8 512
-    <+> emailPatternValidator
-    >=> mailAddressValidator // only executes when prior two steps are `Ok`
+    Check.String.betweenLen 8 512 // check string is between 8 and 512 chars
+    <+> emailPatternValidator     // and, check string match email regex
+    >=> mailAddressValidator      // then, check using System.Net.Mail if prior two steps are `Ok`
 
 "fake@test"
 |> emailValidator "Login email"
@@ -262,25 +279,6 @@ let ageValidator =
     <|> Check.Int.greaterThan 65 *| Senior      // or, check age greater than 65 assiging Senior
     <|> Check.Int.between 18 65  *|* Adult)     // or, check age between 18 and 65 assigning adult mapping converted input
 ```
-
-The full list of operators can be seen below:
-
-| Operator | Description |
-| -------- | ----------- |
-| `<+>` | Compose two validators of equal types |
-| `*\|*` | Map the `Ok` result of a validator, high precedence, for use with choice `<\|>`. |
-| `*\|` | Set the `Ok` result of a validator to a fixed value, high precedence, for use with choice `<\|>`. |
-| `>>\|` | Map the `Ok` result of a validator, low precedence, for use in chained validation |
-| `>\|` | Set the `Ok` result of a validator to a fixed value, low precedence, for use in chained validation |
-| `>>=` | Bind the `Ok` result of a validator with a one-argument function that returns a Result |
-| `<<=` | Reverse-bind the `Ok` result of a validator with a one-argument function that returns a Result |
-| `>>%` | Set the `Ok` result of a validator to a fixed Result value |
-| `<\|>` | Introduce choice: if the rh-side validates `Ok`, pick that result, otherwise, continue with the next validator |
-| `>=>` | Kleisli-bind two validators. Other than Compose `<+>`, this can change the result type. |
-| `<=<` | Reverse kleisli-bind two validators (rh-side is evaluated first). Other than Compose `<+>`, this can change the result type. |
-| `.>>` | Compose two validators, but keep the result of the lh-side. Ignore the result of the rh-side, unless it returns an Error. |
-| `>>.` | Compose two validators, but keep the result of the rh-side. Ignore the result of the lh-side, unless it returns an Error. |
-| `.>>.` | Compose two validators, and keep the result of both sides as a tuple. |
 
 ## Value Objects
 
