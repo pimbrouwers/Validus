@@ -207,10 +207,80 @@ let result =
 
 ### Custom Operators
 
-TODO Abel
+Recreating the example code above using the combinator operators:
 
 ```fsharp
+open System.Net.Mail
+open Validus
+open Validus.Operators
+
+let msg = sprintf "Please provide a valid %s"
+
+let emailPatternValidator =
+    Check.WithMessage.String.pattern @"[^@]+@[^\.]+\..+" msg
+
+// A custom validator that uses System.Net.Mail to validate email
+let mailAddressValidator =
+    let rule (x : string) =
+        if x = "" then false
+        else
+            try
+                let addr = MailAddress(x)
+                if addr.Address = x then true
+                else false
+            with
+            | :? FormatException -> false
+
+    Validator.create msg rule
+
+let emailValidator =
+    Check.String.betweenLen 8 512
+    <+> emailPatternValidator
+    >=> mailAddressValidator // only executes when prior two steps are `Ok`
+
+"fake@test"
+|> emailValidator "Login email"
+
 ```
+
+A more complex example involving "chained" validators and both "choice" assignment & mapping:
+
+```fsharp
+open System
+open Validus
+open Validus.Operators
+
+type AgeGroup =
+    | Adult of int
+    | Child
+    | Senior
+
+let ageValidator =
+    Check.String.pattern @"\d+" *|* Int32.Parse // if pattern matches, convert to Int32
+    >=> Check.Int.between 0 120                 // first check age between 0 and 120
+    >=> (Check.Int.between 0 17  *| Child       // then, check age between 0 an 17 assigning Child
+    <|> Check.Int.greaterThan 65 *| Senior      // or, check age greater than 65 assiging Senior
+    <|> Check.Int.between 18 65  *|* Adult)     // or, check age between 18 and 65 assigning adult mapping converted input
+```
+
+The full list of operators can be seen below:
+
+| Operator | Description |
+| -------- | ----------- |
+| `*|*` | Map the Ok result of a validator, high precedence, for use with choice (<|>). |
+| `*|` | Set the Ok result of a validator to a fixed value, high precedence, for use with choice (<|>). |
+| `>>|` | Map the Ok result of a validator, low precedence, for use in chained validation |
+| `>|` | Set the Ok result of a validator to a fixed value, low precedence, for use in chained validation |
+| `>>=` | Bind the Ok result of a validator with a one-argument function that returns a Result |
+| `<<=` | Reverse-bind the Ok result of a validator with a one-argument function that returns a Result |
+| `>>%` | Set the Ok result of a validator to a fixed Result value |
+| `<+>` | Compose two validators of equal types |
+| `<|>` | Introduce choice: if the rh-side validates Ok, pick that result, otherwise, continue with the next validator |
+| `>=>` | Kleisli-bind two validators. Other than Compose (<+>), this can change the result type. |
+| `<=<` | Reverse kleisli-bind two validators (rh-side is evaluated first). Other than Compose (<+>), this can change the result type. |
+| `.>>` | Compose two validators, but keep the result of the lh-side. Ignore the result of the rh-side, unless it returns an Error. |
+| `>>.` | Compose two validators, but keep the result of the rh-side. Ignore the result of the lh-side, unless it returns an Error. |
+| `.>>.` | Compose two validators, and keep the result of both sides as a tuple. |
 
 ## Value Objects
 

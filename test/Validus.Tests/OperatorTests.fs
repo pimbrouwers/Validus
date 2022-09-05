@@ -4,7 +4,6 @@ open System
 open Xunit
 open FsCheck.Xunit
 open FsUnit.Xunit
-open Swensen.Unquote
 open Validus
 open Validus.Operators
 open System.Globalization
@@ -41,17 +40,15 @@ let ``Test choice and reverse kleisli operator`` () =
     let ageValidator =
         Check.Int.between 0 17 *| Child
         <|> Check.Int.greaterThan 65 *| Senior
-        <|> Check.Int.between 18 65 *|* fun x -> Adult x
         <=< Check.Int.between 0 120
         <=< Check.String.pattern @"\d+" *|* Int32.Parse
 
-
-    test <@ ageValidator "Age" "12"  |> Result.isOkValue Child @>
-    test <@ ageValidator "Age" "18"  |> Result.isOkValue (Adult 18) @>
-    test <@ ageValidator "Age" "66"  |> Result.isOkValue Senior @>
-    test <@ ageValidator "Age" "-1"  |> Result.containsErrorValue "'Age' must be between 0 and 120" @>
-    test <@ ageValidator "Age" "foo" |> Result.containsErrorValue "'Age' must match pattern \d+" @>
-    test <@ ageValidator "Age" "200" |> Result.containsErrorValue "'Age' must be between 0 and 120" @>
+    ageValidator "Age" "12"  |> Result.isOkValue Child |> ignore
+    ageValidator "Age" "18"  |> Result.isOkValue (Adult 18) |> ignore
+    ageValidator "Age" "66"  |> Result.isOkValue Senior |> ignore
+    ageValidator "Age" "-1"  |> Result.containsErrorValue "'Age' must be between 0 and 120" |> ignore
+    ageValidator "Age" "foo" |> Result.containsErrorValue "'Age' must match pattern \d+" |> ignore
+    ageValidator "Age" "200" |> Result.containsErrorValue "'Age' must be between 0 and 120" |> ignore
 
 [<Fact>]
 let ``Test choice and forward kleisli operator`` () =
@@ -63,12 +60,12 @@ let ``Test choice and forward kleisli operator`` () =
         <|> Check.Int.between 18 65  *|* Adult)
 
 
-    test <@ ageValidator "Age" "12"  |> Result.isOkValue Child @>
-    test <@ ageValidator "Age" "18"  |> Result.isOkValue (Adult 18) @>
-    test <@ ageValidator "Age" "66"  |> Result.isOkValue Senior @>
-    test <@ ageValidator "Age" "-1"  |> Result.containsErrorValue "'Age' must be between 0 and 120" @>
-    test <@ ageValidator "Age" "foo" |> Result.containsErrorValue "'Age' must match pattern \d+" @>
-    test <@ ageValidator "Age" "200" |> Result.containsErrorValue "'Age' must be between 0 and 120" @>
+    ageValidator "Age" "12"  |> Result.isOkValue Child |> ignore
+    ageValidator "Age" "18"  |> Result.isOkValue (Adult 18) |> ignore
+    ageValidator "Age" "66"  |> Result.isOkValue Senior |> ignore
+    ageValidator "Age" "-1"  |> Result.containsErrorValue "'Age' must be between 0 and 120" |> ignore
+    ageValidator "Age" "foo" |> Result.containsErrorValue "'Age' must match pattern \d+" |> ignore
+    ageValidator "Age" "200" |> Result.containsErrorValue "'Age' must be between 0 and 120" |> ignore
 
 [<Fact>]
 let ``Test bind operator`` () =
@@ -77,9 +74,9 @@ let ``Test bind operator`` () =
         >>= Int.tryParseFromDecimal "Number"
         >=> Check.Int.between 0 255
 
-    test <@ decimalByteValidator "Byte" "33" |> Result.isOkValue 33 @>
-    test <@ decimalByteValidator "Byte" "33.99" |> Result.isOkValue 33 @>
-    test <@ decimalByteValidator "Byte" "33.99." |> Result.containsErrorValue "Not a number" @>
+    decimalByteValidator "Byte" "33" |> Result.isOkValue 33 |> ignore
+    decimalByteValidator "Byte" "33.99" |> Result.isOkValue 33 |> ignore
+    decimalByteValidator "Byte" "33.99." |> Result.containsErrorValue "Not a number" |> ignore
 
 let tryRange255 lbl = function x when x < 255 -> Ok x     | _ -> Result.vError lbl "Wrong range"
 let tryFizz lbl     = function x when x % 3 = 0 -> Ok x   | _ -> Result.vError lbl "Not a Fizz"
@@ -95,12 +92,12 @@ let ``Test multiple bind operators fizzbuzz`` () =
         >>= tryFizz "Fizz"
         >>= tryBuzz "Buzz"
 
-    test <@ fizzBuzzValidator "FizzBuzz" "0"     |> Result.isOkValue 0 @>
-    test <@ fizzBuzzValidator "FizzBuzz" "165"   |> Result.isOkValue 165 @>
-    test <@ fizzBuzzValidator "FizzBuzz" "30.99" |> Result.isOkValue 30 @>
-    test <@ fizzBuzzValidator "FizzBuzz" "256"   |> Result.containsErrorValue "Wrong range" @>
-    test <@ fizzBuzzValidator "FizzBuzz" "9"     |> Result.containsErrorValue "Not a Buzz" @>
-    test <@ fizzBuzzValidator "FizzBuzz" "20"    |> Result.containsErrorValue "Not a Fizz" @>
+    fizzBuzzValidator "FizzBuzz" "0"     |> Result.isOkValue 0 |> ignore
+    fizzBuzzValidator "FizzBuzz" "165"   |> Result.isOkValue 165 |> ignore
+    fizzBuzzValidator "FizzBuzz" "30.99" |> Result.isOkValue 30 |> ignore
+    fizzBuzzValidator "FizzBuzz" "256"   |> Result.containsErrorValue "Wrong range" |> ignore
+    fizzBuzzValidator "FizzBuzz" "9"     |> Result.containsErrorValue "Not a Buzz" |> ignore
+    fizzBuzzValidator "FizzBuzz" "20"    |> Result.containsErrorValue "Not a Fizz" |> ignore
 
 type FizzBuzz = Fizz of int | Buzz of int | FizzBuzz of int
 
@@ -114,9 +111,9 @@ let ``Test multiple bind and pickLeft & Right operators fizzbuzz`` () =
         .>> tryFizz *|* Fizz  // a log statement or other side effect makes more sense here, as we ignore the resutl
         >>. tryBuzz *|* Buzz
 
-    test <@ fizzBuzzValidator "Byte" "0" |> Result.isOkValue (Buzz 0) @>
-    test <@ fizzBuzzValidator "Byte" "3" |> Result.containsErrorValue "Not a Buzz" @>
-    test <@ fizzBuzzValidator "Byte" "15" |> Result.isOkValue (Buzz 15) @>
+    fizzBuzzValidator "Byte" "0" |> Result.isOkValue (Buzz 0) |> ignore
+    fizzBuzzValidator "Byte" "3" |> Result.containsErrorValue "Not a Buzz" |> ignore
+    fizzBuzzValidator "Byte" "15" |> Result.isOkValue (Buzz 15) |> ignore
 
 [<Fact>]
 let ``Test combination of bind, kleisli and choice operators fizzbuzz`` () =
@@ -128,15 +125,15 @@ let ``Test combination of bind, kleisli and choice operators fizzbuzz`` () =
         <|> tryFizz      *|* Fizz  // a log statement or other side effect makes more sense here, as we ignore the resutl
         <|> tryBuzz      *|* Buzz)
 
-    test <@ fizzBuzzValidator "FizzBuzz" "0"   |> Result.isOkValue (FizzBuzz 0) @>
-    test <@ fizzBuzzValidator "FizzBuzz" "150" |> Result.isOkValue (FizzBuzz 150) @>
-    test <@ fizzBuzzValidator "FizzBuzz" "21"  |> Result.isOkValue (Fizz 21) @>
-    test <@ fizzBuzzValidator "FizzBuzz" "50"  |> Result.isOkValue (Buzz 50) @>
-    test <@ fizzBuzzValidator "FizzBuzz" "254" |> Result.containsErrorValue "Not a Buzz" @>
-    test <@ fizzBuzzValidator "FizzBuzz" "254" |> Result.containsErrorValue "Not a Fizz" @>
-    test <@ fizzBuzzValidator "FizzBuzz" "254" |> Result.containsErrorValue "Not a FizzBuzz" @>
-    test <@ fizzBuzzValidator "FizzBuzz" "500" |> Result.containsErrorValue "Wrong range" @>
-    test <@ fizzBuzzValidator "FizzBuzz" "Foo" |> Result.containsErrorValue "'FizzBuzz' must match pattern [\d\.]+" @>
+    fizzBuzzValidator "FizzBuzz" "0"   |> Result.isOkValue (FizzBuzz 0) |> ignore
+    fizzBuzzValidator "FizzBuzz" "150" |> Result.isOkValue (FizzBuzz 150) |> ignore
+    fizzBuzzValidator "FizzBuzz" "21"  |> Result.isOkValue (Fizz 21) |> ignore
+    fizzBuzzValidator "FizzBuzz" "50"  |> Result.isOkValue (Buzz 50) |> ignore
+    fizzBuzzValidator "FizzBuzz" "254" |> Result.containsErrorValue "Not a Buzz" |> ignore
+    fizzBuzzValidator "FizzBuzz" "254" |> Result.containsErrorValue "Not a Fizz" |> ignore
+    fizzBuzzValidator "FizzBuzz" "254" |> Result.containsErrorValue "Not a FizzBuzz" |> ignore
+    fizzBuzzValidator "FizzBuzz" "500" |> Result.containsErrorValue "Wrong range" |> ignore
+    fizzBuzzValidator "FizzBuzz" "Foo" |> Result.containsErrorValue "'FizzBuzz' must match pattern [\d\.]+" |> ignore
 
 [<Fact>]
 let ``Use pickleft to parse as decimal, do some logging, but keep the input string`` () =
@@ -149,9 +146,9 @@ let ``Use pickleft to parse as decimal, do some logging, but keep the input stri
         .>> log
         >>= (sprintf "%s%%" >> Ok)
 
-    test <@ percentageValidator "Percentage" "10" |> Result.isOkValue "10%" @>
-    test <@ ignore <| percentageValidator "Percentage" "100"; x = 2 @>  // 'test' creates new closure
-    test <@ percentageValidator "Percentage" "10.10.10" |> Result.containsErrorValue "Not a number" @>
+    percentageValidator "Percentage" "10" |> Result.isOkValue "10%" |> ignore
+    ignore <| percentageValidator "Percentage" "100"; x = 2  |> ignore  // 'test' creates new closure
+    percentageValidator "Percentage" "10.10.10" |> Result.containsErrorValue "Not a number" |> ignore
 
 [<Fact>]
 let ``Use pickBoth and pickLeft in combination, sad path`` () =
@@ -165,8 +162,8 @@ let ``Use pickBoth and pickLeft in combination, sad path`` () =
         >| 42 // we'll never get here
         .>> log
 
-    test <@ parseAndStore "Data" "10" |> Result.containsErrorValue "Connection lost" @>
-    test <@ parseAndStore "Data" "3.3.3" |> Result.containsErrorValue "Not a number" @>
+    parseAndStore "Data" "10" |> Result.containsErrorValue "Connection lost" |> ignore
+    parseAndStore "Data" "3.3.3" |> Result.containsErrorValue "Not a number" |> ignore
 
 [<Fact>]
 let ``Use pickBoth and pickLeft in combination, happy path`` () =
@@ -180,8 +177,8 @@ let ``Use pickBoth and pickLeft in combination, happy path`` () =
         .>> log
         >>| fun (x, dbresult) -> $"Result: {dbresult}, data: {x}"
 
-    test <@ parseAndStore "Data" "10" |> Result.isOkValue "Result: HTTP: 200 Ok, data: 10" @>
-    test <@ parseAndStore "Data" "3.3.3" |> Result.containsErrorValue "Not a number" @>
+    parseAndStore "Data" "10" |> Result.isOkValue "Result: HTTP: 200 Ok, data: 10" |> ignore
+    parseAndStore "Data" "3.3.3" |> Result.containsErrorValue "Not a number" |> ignore
 
 [<Fact>]
 let ``Show composability of all low precedence operators`` () =
@@ -208,6 +205,6 @@ let ``Show composability of all low precedence operators`` () =
         >=> ((fun y -> Ok (Random().Next(0, 10))) <<= Check.Int.lessThan 100)
         >=> Check.Int.lessThan 11
 
-    test <@ someSillyCombination "Data" 200 |> Result.containsErrorValue "'Data' must be less than 100" @>
-    test <@ someSillyCombination "Data" 90 |> function Ok x when x < 11 -> true | _ -> false @>
-    test <@ ignore <| someSillyCombination "Data" 10; x = 1 @>
+    someSillyCombination "Data" 200 |> Result.containsErrorValue "'Data' must be less than 100" |> ignore
+    let _ = someSillyCombination "Data" 90 |> function Ok x when x < 11 -> true | _ -> false
+    ignore <| someSillyCombination "Data" 10; x = 1 |> ignore

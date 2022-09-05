@@ -1,7 +1,8 @@
 namespace Validus
 
 module Operators =
-    let map (f: Validator<'a, 'b>) (g: 'b -> 'c) : Validator<'a, 'c> = fun a b -> Result.map g (f a b)
+    let map (f: Validator<'a, 'b>) (g: 'b -> 'c) : Validator<'a, 'c> =
+        fun a b -> Result.map g (f a b)
 
     let bindResult (f: Validator<'a, 'b>) (g: 'b -> Result<'c, _>) : Validator<'a, 'c> =
         fun a b -> Result.bind g (f a b)
@@ -56,13 +57,13 @@ module Operators =
                 | Error e2 -> ValidationErrors.merge e1 e2 |> Error
 
 
-    /// Map the Ok result of a validator, high precence, for use with choice (<|>).
+    /// Map the Ok result of a validator, high precedence, for use with choice (<|>).
     let ( *|* ) f g = map f g
 
     /// Set the Ok result of a validator to a fixed value, high precedence, for use with choice (<|>).
     let ( *| ) f x = map f (fun _ -> x)
 
-    /// Map the Ok result of a validator, low precence, for use in chained validation
+    /// Map the Ok result of a validator, low precedence, for use in chained validation
     let (>>|) f g = map f g
 
     /// Set the Ok result of a validator to a fixed value, low precedence, for use in chained validation
