@@ -267,17 +267,17 @@ The full list of operators can be seen below:
 
 | Operator | Description |
 | -------- | ----------- |
-| `*|*` | Map the Ok result of a validator, high precedence, for use with choice (<|>). |
-| `*|` | Set the Ok result of a validator to a fixed value, high precedence, for use with choice (<|>). |
-| `>>|` | Map the Ok result of a validator, low precedence, for use in chained validation |
-| `>|` | Set the Ok result of a validator to a fixed value, low precedence, for use in chained validation |
-| `>>=` | Bind the Ok result of a validator with a one-argument function that returns a Result |
-| `<<=` | Reverse-bind the Ok result of a validator with a one-argument function that returns a Result |
-| `>>%` | Set the Ok result of a validator to a fixed Result value |
 | `<+>` | Compose two validators of equal types |
-| `<|>` | Introduce choice: if the rh-side validates Ok, pick that result, otherwise, continue with the next validator |
-| `>=>` | Kleisli-bind two validators. Other than Compose (<+>), this can change the result type. |
-| `<=<` | Reverse kleisli-bind two validators (rh-side is evaluated first). Other than Compose (<+>), this can change the result type. |
+| `*\|*` | Map the `Ok` result of a validator, high precedence, for use with choice `<\|>`. |
+| `*\|` | Set the `Ok` result of a validator to a fixed value, high precedence, for use with choice `<\|>`. |
+| `>>\|` | Map the `Ok` result of a validator, low precedence, for use in chained validation |
+| `>\|` | Set the `Ok` result of a validator to a fixed value, low precedence, for use in chained validation |
+| `>>=` | Bind the `Ok` result of a validator with a one-argument function that returns a Result |
+| `<<=` | Reverse-bind the `Ok` result of a validator with a one-argument function that returns a Result |
+| `>>%` | Set the `Ok` result of a validator to a fixed Result value |
+| `<\|>` | Introduce choice: if the rh-side validates `Ok`, pick that result, otherwise, continue with the next validator |
+| `>=>` | Kleisli-bind two validators. Other than Compose `<+>`, this can change the result type. |
+| `<=<` | Reverse kleisli-bind two validators (rh-side is evaluated first). Other than Compose `<+>`, this can change the result type. |
 | `.>>` | Compose two validators, but keep the result of the lh-side. Ignore the result of the rh-side, unless it returns an Error. |
 | `>>.` | Compose two validators, but keep the result of the rh-side. Ignore the result of the lh-side, unless it returns an Error. |
 | `.>>.` | Compose two validators, and keep the result of both sides as a tuple. |
