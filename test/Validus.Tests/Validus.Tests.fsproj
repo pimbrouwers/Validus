@@ -16,6 +16,7 @@
     <Compile Include="ComparisonValidatorTests.fs" />
     <Compile Include="StringValidatorTests.fs" />
     <Compile Include="ListValidatorTests.fs" />
+    <Compile Include="SequenceValidatorTests.fs" />
     <Compile Include="OperatorTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
