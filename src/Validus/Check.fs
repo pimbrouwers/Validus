@@ -62,6 +62,9 @@ module Check =
         /// List validators
         let List<'a when 'a : equality> = ListValidator<'a>()
 
+        /// Sequence validators
+        let Seq<'a when 'a : equality> = SequenceValidator<'a>()
+
     /// Execute validator if 'a is Some, otherwise return Ok 'a
     let optional
         (validator : Validator<'a, 'b>)
@@ -135,3 +138,6 @@ module Check =
 
     /// List validators
     let List<'a when 'a : equality> = Validators.Default.DefaultListValidator<'a>(WithMessage.List)
+
+    /// Sequence validators
+    let Seq<'a when 'a : equality> = Validators.Default.DefaultSequenceValidator<'a>(WithMessage.Seq)
