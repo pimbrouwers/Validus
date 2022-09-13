@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Validus", "Validus\Validus.fsproj", "{6763D0FB-0DB9-4CD1-8381-3B09D32353ED}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Validus", "src\Validus\Validus.fsproj", "{6763D0FB-0DB9-4CD1-8381-3B09D32353ED}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Validus.Tests", "..\test\Validus.Tests\Validus.Tests.fsproj", "{5B5BE174-6EA9-4592-BBBC-0B0653BE3775}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Validus.Tests", "test\Validus.Tests\Validus.Tests.fsproj", "{5B5BE174-6EA9-4592-BBBC-0B0653BE3775}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
