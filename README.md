@@ -205,7 +205,364 @@ let result =
     |> List.map (emailValidator "Login email")
 ```
 
-### Custom Operators
+## Value Objects
+
+It is generally a good idea to create [value objects](https://blog.ploeh.dk/2015/01/19/from-primitive-obsession-to-domain-modelling/), sometimes referred to a *value types* or *constrained primitives*, to represent individual data points that are more classified than the primitive types usually used to represent them.
+
+### Example 1: Email Address Value Object
+
+A good example of this is an email address being represented as a `string` literal, as it exists in many programs. This is however a flawed approach in that the domain of an email address is more tightly scoped than a string will allow. For example, `""` or `null` are not valid emails.
+
+To address this, we can create a wrapper type to represent the email address which hides away the implementation details and provides a smart construct to produce the type.
+
+```fsharp
+open System.Net.Mail
+
+type Email =
+    private { Email : string }
+
+    override x.ToString () = x.Email
+
+    // Note the transformation from string -> Email
+    static member Of : Validator<string, Email> = fun field input ->
+        let rule (x : string) =
+            if x = "" then false
+            else
+                try
+                    let addr = MailAddress(x)
+                    if addr.Address = x then true
+                    else false
+                with
+                | :? FormatException -> false
+
+        let message = sprintf "%s must be a valid email address"
+
+        input
+        |> Validator.create message rule field
+        |> Result.map (fun v -> { Email = v })
+```
+
+### Example 2: E164 Formatted Phone Number
+
+```fsharp
+type E164 =
+    private { E164 : string }
+
+    override x.ToString() = x.E164
+
+    static member Of : Validator<string, E164> = fun field input ->
+        let e164Regex = @"^\+[1-9]\d{1,14}$"
+        let message = sprintf "%s must be a valid E164 telephone number"
+
+        input
+        |> Check.WithMessage.String.pattern e164Regex message field
+        |> Result.map (fun v -> { E164 = v })
+```
+
+## Built-in Validators
+
+> Note: Validators pre-populated with English-language default error messages reside within the `Check` module.
+
+## `equals`
+
+Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan, 'a array, 'a list, 'a seq`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a string equals
+// "foo" displaying the standard error message.
+let equalsFoo =
+  Check.String.equals "foo" "fieldName"
+
+equalsFoo "bar"
+
+// Define a validator which checks if a string equals
+// "foo" displaying a custom error message (string -> string).
+let equalsFooCustom =
+  let msg = sprintf "%s must equal the word 'foo'"
+  Check.WithMessage.String.equals "foo" msg "fieldName"
+
+equalsFooCustom "bar"
+```
+
+## `notEquals`
+
+Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan, 'a array, 'a list, 'a seq`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a string is not
+// equal to "foo" displaying the standard error message.
+let notEqualsFoo =
+  Check.String.notEquals "foo" "fieldName"
+
+notEqualsFoo "bar"
+
+// Define a validator which checks if a string is not
+// equal to "foo" displaying a custom error message (string -> string)
+let notEqualsFooCustom =
+  let msg = sprintf "%s must not equal the word 'foo'"
+  Check.WithMessage.String.notEquals "foo" msg "fieldName"
+
+notEqualsFooCustom "bar"
+```
+
+## `between`
+
+Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if an int is between
+// 1 and 100 (inclusive) displaying the standard error message.
+let between1and100 =
+  Check.Int.between 1 100 "fieldName"
+
+between1and100 12 // Result<int, ValidationErrors>
+
+// Define a validator which checks if an int is between
+// 1 and 100 (inclusive) displaying a custom error message.
+let between1and100Custom =
+  let msg = sprintf "%s must be between 1 and 100"
+  Check.WithMessage.Int.between 1 100 msg "fieldName"
+
+between1and100Custom 12 // Result<int, ValidationErrors>
+```
+
+## `greaterThan`
+
+Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if an int is greater than
+// 100 displaying the standard error message.
+let greaterThan100 =
+  Check.Int.greaterThan 100 "fieldName"
+
+greaterThan100 12 // Result<int, ValidationErrors>
+
+// Define a validator which checks if an int is greater than
+// 100 displaying a custom error message.
+let greaterThan100Custom =
+  let msg = sprintf "%s must be greater than 100"
+  Check.WithMessage.Int.greaterThan 100 msg "fieldName"
+
+greaterThan100Custom 12 // Result<int, ValidationErrors>
+```
+
+## `lessThan`
+
+Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if an int is less than
+// 100 displaying the standard error message.
+let lessThan100 =
+  Check.Int.lessThan 100 "fieldName"
+
+lessThan100 12 // Result<int, ValidationErrors>
+
+// Define a validator which checks if an int is less than
+// 100 displaying a custom error message.
+let lessThan100Custom =
+  let msg = sprintf "%s must be less than 100"
+  Check.WithMessage.Int.lessThan 100 msg "fieldName"
+
+lessThan100Custom 12 // Result<int, ValidationErrors>
+```
+
+## `betweenLen`
+
+Applies to: `string, 'a array, 'a list, 'a seq`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a string is between
+// 1 and 100 chars displaying the standard error message.
+let between1and100Chars =
+  Check.String.betweenLen 1 100 "fieldName"
+
+between1and100Chars "validus"
+
+// Define a validator which checks if a string is between
+// 1 and 100 chars displaying a custom error message.
+let between1and100CharsCustom =
+  let msg = sprintf "%s must be between 1 and 100 chars"
+  Check.WithMessage.String.betweenLen 1 100 msg "fieldName"
+
+between1and100CharsCustom "validus"
+```
+
+## `equalsLen`
+
+Applies to: `string, 'a array, 'a list, 'a seq`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a string is equals to
+// 100 chars displaying the standard error message.
+let equals100Chars =
+  Check.String.equalsLen 100 "fieldName"
+
+equals100Chars "validus"
+
+// Define a validator which checks if a string is equals to
+// 100 chars displaying a custom error message.
+let equals100CharsCustom =
+  let msg = sprintf "%s must be 100 chars"
+  Check.WithMessage.String.equalsLen 100 msg "fieldName"
+
+equals100CharsCustom "validus"
+```
+
+## `greaterThanLen`
+
+Applies to: `string, 'a array, 'a list, 'a seq`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a string is greater than
+// 100 chars displaying the standard error message.
+let greaterThan100Chars =
+  Check.String.greaterThanLen 100 "fieldName"
+
+greaterThan100Chars "validus"
+
+// Define a validator which checks if a string is greater than
+// 100 chars displaying a custom error message.
+let greaterThan100CharsCustom =
+  let msg = sprintf "%s must be greater than 100 chars"
+  Check.WithMessage.String.greaterThanLen 100 msg "fieldName"
+
+greaterThan100CharsCustom "validus"
+```
+
+## `lessThanLen`
+
+Applies to: `string, 'a array, 'a list, 'a seq`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a string is less tha
+// 100 chars displaying the standard error message.
+let lessThan100Chars =
+  Check.String.lessThanLen 100 "fieldName"
+
+lessThan100Chars "validus"
+
+// Define a validator which checks if a string is less tha
+// 100 chars displaying a custom error message.
+let lessThan100CharsCustom =
+  let msg = sprintf "%s must be less than 100 chars"
+  Check.WithMessage.String.lessThanLen 100 msg "fieldName"
+
+lessThan100CharsCustom "validus"
+```
+
+## `empty`
+
+Applies to: `string, 'a array, 'a list, 'a seq`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a string is empty
+// displaying the standard error message.
+let stringIsEmpty =
+  Check.String.empty "fieldName"
+
+stringIsEmpty "validus"
+
+// Define a validator which checks if a string is empty
+// displaying a custom error message.
+let stringIsEmptyCustom =
+  let msg = sprintf "%s must be empty"
+  Check.WithMessage.String.empty msg "fieldName"
+
+stringIsEmptyCustom "validus"
+```
+
+## `notEmpty`
+
+Applies to: `string, 'a array, 'a list, 'a seq`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a string is not empty
+// displaying the standard error message.
+let stringIsNotEmpty =
+  Check.String.notEmpty "fieldName"
+
+stringIsNotEmpty "validus"
+
+// Define a validator which checks if a string is not empty
+// displaying a custom error message.
+let stringIsNotEmptyCustom =
+  let msg = sprintf "%s must not be empty"
+  Check.WithMessage.String.notEmpty msg "fieldName"
+
+stringIsNotEmptyCustom "validus"
+```
+
+## `pattern`
+
+Applies to: `string`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a string matches the
+// provided regex displaying the standard error message.
+let stringIsChars =
+  Check.String.pattern "[a-z]+" "fieldName"
+
+stringIsChars "validus"
+
+// Define a validator which checks if a string matches the
+// provided regex displaying a custom error message.
+let stringIsCharsCustom =
+  let msg = sprintf "%s must follow the pattern [a-z]"
+  Check.WithMessage.String.pattern "[a-z]" msg "fieldName"
+
+stringIsCharsCustom "validus"
+```
+
+## `exists`
+
+Applies to: `'a array, 'a list, 'a seq`
+
+```fsharp
+open Validus
+
+// Define a validator which checks if a collection matches the provided predicate
+// displaying the standard error message.
+let collectionContains =
+  Check.List.exists (fun x -> x = 1) "fieldName"
+
+collectionContains [1]
+
+// Define a validator which checks if a string is not empty
+// displaying a custom error message.
+let collectionContainsCustom =
+  let msg = sprintf "%s must contain the value '1'"
+  Check.WithMessage.List.exists (fun x -> x = 1) msg "fieldName"
+
+collectionContainsCustom [1]
+```
+
+## Custom Operators
 
 | Operator | Description |
 | -------- | ----------- |
@@ -278,340 +635,6 @@ let ageValidator =
     >=> (Check.Int.between 0 17  *| Child       // then, check age between 0 an 17 assigning Child
     <|> Check.Int.greaterThan 65 *| Senior      // or, check age greater than 65 assiging Senior
     <|> Check.Int.between 18 65  *|* Adult)     // or, check age between 18 and 65 assigning adult mapping converted input
-```
-
-## Value Objects
-
-It is generally a good idea to create [value objects](https://blog.ploeh.dk/2015/01/19/from-primitive-obsession-to-domain-modelling/), sometimes referred to a *value types* or *constrained primitives*, to represent individual data points that are more classified than the primitive types usually used to represent them.
-
-### Example 1: Email Address Value Object
-
-A good example of this is an email address being represented as a `string` literal, as it exists in many programs. This is however a flawed approach in that the domain of an email address is more tightly scoped than a string will allow. For example, `""` or `null` are not valid emails.
-
-To address this, we can create a wrapper type to represent the email address which hides away the implementation details and provides a smart construct to produce the type.
-
-```fsharp
-open System.Net.Mail
-
-type Email =
-    private { Email : string }
-
-    override x.ToString () = x.Email
-
-    // Note the transformation from string -> Email
-    static member Of : Validator<string, Email> = fun field input ->
-        let rule (x : string) =
-            if x = "" then false
-            else
-                try
-                    let addr = MailAddress(x)
-                    if addr.Address = x then true
-                    else false
-                with
-                | :? FormatException -> false
-
-        let message = sprintf "%s must be a valid email address"
-
-        input
-        |> Validator.create message rule field
-        |> Result.map (fun v -> { Email = v })
-```
-
-### Example 2: E164 Formatted Phone Number
-
-```fsharp
-type E164 =
-    private { E164 : string }
-
-    override x.ToString() = x.E164
-
-    static member Of : Validator<string, E164> = fun field input ->
-        let e164Regex = @"^\+[1-9]\d{1,14}$"
-        let message = sprintf "%s must be a valid E164 telephone number"
-
-        input
-        |> Check.WithMessage.String.pattern e164Regex message field
-        |> Result.map (fun v -> { E164 = v })
-```
-
-## Built-in Validators
-
-> Note: Validators pre-populated with English-language default error messages reside within the `Check` module.
-
-## [`equals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L99)
-
-Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if a string equals
-// "foo" displaying the standard error message.
-let equalsFoo =
-  Check.String.equals "foo" "fieldName"
-
-equalsFoo "bar"
-
-// Define a validator which checks if a string equals
-// "foo" displaying a custom error message (string -> string).
-let equalsFooCustom =
-  let msg = sprintf "%s must equal the word 'foo'" "fieldName"
-  Check.WithMessage.String.equals "foo" msg
-
-equalsFooCustom "bar"
-```
-
-## [`notEquals`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L103)
-
-Applies to: `string, int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if a string is not
-// equal to "foo" displaying the standard error message.
-let notEqualsFoo =
-  Check.String.notEquals "foo" "fieldName"
-
-notEqualsFoo "bar"
-
-// Define a validator which checks if a string is not
-// equal to "foo" displaying a custom error message (string -> string)
-let notEqualsFooCustom =
-  let msg = sprintf "%s must not equal the word 'foo'" "fieldName"
-  Check.WithMessage.String.notEquals "foo" msg
-
-notEqualsFooCustom "bar"
-```
-
-## [`between`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L110) (inclusive)
-
-Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if an int is between
-// 1 and 100 (inclusive) displaying the standard error message.
-let between1and100 =
-  Check.Int.between 1 100 "fieldName"
-
-between1and100 12 // Result<int, ValidationErrors>
-
-// Define a validator which checks if an int is between
-// 1 and 100 (inclusive) displaying a custom error message.
-let between1and100Custom =
-  let msg = sprintf "%s must be between 1 and 100" "fieldName"
-  Check.WithMessage.Int.between 1 100 msg
-
-between1and100Custom 12 // Result<int, ValidationErrors>
-```
-
-## [`greaterThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L114)
-
-Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if an int is greater than
-// 100 displaying the standard error message.
-let greaterThan100 =
-  Check.Int.greaterThan 100 "fieldName"
-
-greaterThan100 12 // Result<int, ValidationErrors>
-
-// Define a validator which checks if an int is greater than
-// 100 displaying a custom error message.
-let greaterThan100Custom =
-  let msg = sprintf "%s must be greater than 100" "fieldName"
-  Check.WithMessage.Int.greaterThan 100 msg
-
-greaterThan100Custom 12 // Result<int, ValidationErrors>
-```
-
-## [`lessThan`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L118)
-
-Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSpan`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if an int is less than
-// 100 displaying the standard error message.
-let lessThan100 =
-  Check.Int.lessThan 100 "fieldName"
-
-lessThan100 12 // Result<int, ValidationErrors>
-
-// Define a validator which checks if an int is less than
-// 100 displaying a custom error message.
-let lessThan100Custom =
-  let msg = sprintf "%s must be less than 100" "fieldName"
-  Check.WithMessage.Int.lessThan 100 msg
-
-lessThan100Custom 12 // Result<int, ValidationErrors>
-```
-
-## [`betweenLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L126)
-
-Applies to: `string`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if a string is between
-// 1 and 100 chars displaying the standard error message.
-let between1and100Chars =
-  Check.String.betweenLen 1 100 "fieldName"
-
-between1and100Chars "validus"
-
-// Define a validator which checks if a string is between
-// 1 and 100 chars displaying a custom error message.
-let between1and100CharsCustom =
-  let msg = sprintf "%s must be between 1 and 100 chars" "fieldName"
-  Check.WithMessage.String.betweenLen 1 100 msg
-
-between1and100CharsCustom "validus"
-```
-
-## [`equalsLen`](https://github.com/pimbrouwers/Validus/blob/e555cc01f41f2d717ecec32fcb46616dca7243e8/src/Validus/Validus.fs#L219)
-
-Applies to: `string`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if a string is equals to
-// 100 chars displaying the standard error message.
-let equals100Chars =
-  Check.String.equalsLen 100 "fieldName"
-
-equals100Chars "validus"
-
-// Define a validator which checks if a string is equals to
-// 100 chars displaying a custom error message.
-let equals100CharsCustom =
-  let msg = sprintf "%s must be 100 chars" "fieldName"
-  Check.WithMessage.String.equalsLen 100 msg
-
-equals100CharsCustom "validus"
-```
-
-## [`greaterThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L136)
-
-Applies to: `string`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if a string is greater than
-// 100 chars displaying the standard error message.
-let greaterThan100Chars =
-  Check.String.greaterThanLen 100 "fieldName"
-
-greaterThan100Chars "validus"
-
-// Define a validator which checks if a string is greater than
-// 100 chars displaying a custom error message.
-let greaterThan100CharsCustom =
-  let msg = sprintf "%s must be greater than 100 chars" "fieldName"
-  Check.WithMessage.String.greaterThanLen 100 msg
-
-greaterThan100CharsCustom "validus"
-```
-
-## [`lessThanLen`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L141)
-
-Applies to: `string`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if a string is less tha
-// 100 chars displaying the standard error message.
-let lessThan100Chars =
-  Check.String.lessThanLen 100 "fieldName"
-
-lessThan100Chars "validus"
-
-// Define a validator which checks if a string is less tha
-// 100 chars displaying a custom error message.
-let lessThan100CharsCustom =
-  let msg = sprintf "%s must be less than 100 chars" "fieldName"
-  Check.WithMessage.String.lessThanLen 100 msg
-
-lessThan100CharsCustom "validus"
-```
-
-## [`empty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L131)
-
-Applies to: `string`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if a string is empty
-// displaying the standard error message.
-let stringIsEmpty =
-  Check.String.empty "fieldName"
-
-stringIsEmpty "validus"
-
-// Define a validator which checks if a string is empty
-// displaying a custom error message.
-let stringIsEmptyCustom =
-  let msg = sprintf "%s must be empty" "fieldName"
-  Check.WithMessage.String.empty msg
-
-stringIsEmptyCustom "validus"
-```
-
-## [`notEmpty`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L146)
-
-Applies to: `string`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if a string is not empty
-// displaying the standard error message.
-let stringIsNotEmpty =
-  Check.String.notEmpty "fieldName"
-
-stringIsNotEmpty "validus"
-
-// Define a validator which checks if a string is not empty
-// displaying a custom error message.
-let stringIsNotEmptyCustom =
-  let msg = sprintf "%s must not be empty" "fieldName"
-  Check.WithMessage.String.notEmpty msg
-
-stringIsNotEmptyCustom "validus"
-```
-
-## [`pattern`](https://github.com/pimbrouwers/Validus/blob/cb168960b788ea50914c661fcbba3cf096ec4f3a/src/Validus/Validus.fs#L151) (Regular Expressions)
-
-Applies to: `string`
-
-```fsharp
-open Validus
-
-// Define a validator which checks if a string matches the
-// provided regex displaying the standard error message.
-let stringIsChars =
-  Check.String.pattern "[a-z]+" "fieldName"
-
-stringIsChars "validus"
-
-// Define a validator which checks if a string matches the
-// provided regex displaying a custom error message.
-let stringIsCharsCustom =
-  let msg = sprintf "%s must follow the pattern [a-z]" "fieldName"
-  Check.WithMessage.String.pattern "[a-z]" msg
-
-stringIsCharsCustom "validus"
 ```
 
 ## Find a bug?
