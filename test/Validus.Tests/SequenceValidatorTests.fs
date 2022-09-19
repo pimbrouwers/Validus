@@ -2,10 +2,17 @@ module Validus.SequenceValidator.Tests
 
 open FsCheck.Xunit
 open Validus
+open Xunit
 
 let private TestValidator = Check.Seq
 let private testSequence = seq { 1..10 }
 let private empty: int seq = seq []
+
+[<Fact>]
+let ``SequenceValidator preserves input type on sucess`` () =
+    match Check.Array.notEmpty "Test" [|1|], Check.List.notEmpty "Test" [1], Check.Seq.notEmpty "Test" (seq {1}) with
+    | Ok (x : int array), Ok (y : int list), Ok (z : int seq) -> true
+    | _ -> false
 
 [<Property>]
 let ``(TestValidator.betweenLen min max) should produce Success`` () =

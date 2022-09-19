@@ -220,76 +220,7 @@ module Validators =
             : ValidationResult<Guid> =
             Validator.create message (fun guid -> Guid.Empty <> guid) field input
 
-    type ListValidator<'a when 'a : equality>() =
-        inherit EqualityValidator<'a list> ()
-
-        /// Validate list is between length (inclusive)
-        member _.betweenLen
-            (min : int)
-            (max : int)
-            (message : ValidationMessage)
-            (field : string)
-            (input : ('a) list)
-            : ValidationResult<'a list> =
-            let rule = ValidationRule.betweenLen min max
-            Validator.create message rule field input
-
-        /// Validate list is empty
-        member _.empty
-            (message : ValidationMessage)
-            (field : string)
-            (input : ('a) list)
-            : ValidationResult<'a list> =
-            Validator.create message List.isEmpty field input
-
-        /// Validate list length is equal to provided value
-        member _.equalsLen
-            (len : int)
-            (message : ValidationMessage)
-            (field : string)
-            (input : ('a) list)
-            : ValidationResult<'a list> =
-            let rule = ValidationRule.equalsLen len
-            Validator.create message rule field input
-
-        /// Validate list contains element matching predicate
-        member _.exists
-            (predicate : 'a -> bool)
-            (message : ValidationMessage)
-            (field : string)
-            (input : ('a) list)
-            : ValidationResult<('a) list> =
-            Validator.create message (List.exists predicate) field input
-
-        /// Validate list length is greater than provided value
-        member _.greaterThanLen
-            (min : int)
-            (message : ValidationMessage)
-            (field : string)
-            (input : ('a) list)
-            : ValidationResult<'a list> =
-            let rule = ValidationRule.greaterThanLen min
-            Validator.create message rule field input
-
-        /// Validate list length is less than provided value
-        member _.lessThanLen
-            (max : int)
-            (message : ValidationMessage)
-            (field : string)
-            (input : ('a) list)
-            : ValidationResult<'a list> =
-            let rule = ValidationRule.lessThanLen max
-            Validator.create message rule field input
-
-        /// Validate list is not empty
-        member _.notEmpty
-            (message : ValidationMessage)
-            (field : string)
-            (input : ('a) list)
-            : ValidationResult<'a list> =
-            Validator.create message (fun x -> not(List.isEmpty x)) field input
-
-    type SequenceValidator<'a when 'a : equality>() =
+    type SequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>() =
         inherit EqualityValidator<'a seq> ()
 
         /// Validate sequence is between length (inclusive)
@@ -298,9 +229,9 @@ module Validators =
             (max : int)
             (message : ValidationMessage)
             (field : string)
-            (input : ('a) seq)
-            : ValidationResult<'a seq> =
-            let rule (input: 'a seq) =
+            (input : 'b)
+            : ValidationResult<'b> =
+            let rule input =
                 let length = Seq.length input
                 length >= min && length <= max
 
@@ -310,8 +241,8 @@ module Validators =
         member _.empty
             (message : ValidationMessage)
             (field : string)
-            (input : ('a) seq)
-            : ValidationResult<'a seq> =
+            (input : 'b)
+            : ValidationResult<'b> =
             Validator.create message Seq.isEmpty field input
 
         /// Validate sequence length is equal to provided value
@@ -319,9 +250,9 @@ module Validators =
             (len : int)
             (message : ValidationMessage)
             (field : string)
-            (input : ('a) seq)
-            : ValidationResult<'a seq> =
-            let rule (input: 'a seq) =
+            (input : 'b)
+            : ValidationResult<'b> =
+            let rule input =
                 let length = Seq.length input
                 length = len
 
@@ -332,8 +263,8 @@ module Validators =
             (predicate : 'a -> bool)
             (message : ValidationMessage)
             (field : string)
-            (input : ('a) seq)
-            : ValidationResult<('a) seq> =
+            (input : 'b)
+            : ValidationResult<'b> =
             Validator.create message (Seq.exists predicate) field input
 
         /// Validate sequence length is greater than provided value
@@ -341,9 +272,9 @@ module Validators =
             (min : int)
             (message : ValidationMessage)
             (field : string)
-            (input : ('a) seq)
-            : ValidationResult<'a seq> =
-            let rule (input: 'a seq) =
+            (input : 'b)
+            : ValidationResult<'b> =
+            let rule input =
                 let length = Seq.length input
                 length > min
 
@@ -354,9 +285,9 @@ module Validators =
             (max : int)
             (message : ValidationMessage)
             (field : string)
-            (input : ('a) seq)
-            : ValidationResult<'a seq> =
-            let rule (input: 'a seq) =
+            (input : 'b)
+            : ValidationResult<'b> =
+            let rule input =
                 let length = Seq.length input
                 length < max
 
@@ -366,8 +297,8 @@ module Validators =
         member _.notEmpty
             (message : ValidationMessage)
             (field : string)
-            (input : ('a) seq)
-            : ValidationResult<'a seq> =
+            (input : 'b)
+            : ValidationResult<'b> =
             Validator.create message (fun x -> not(Seq.isEmpty x)) field input
 
     module Default =
@@ -471,60 +402,12 @@ module Validators =
                 let msg field = sprintf "'%s' must not be empty" field
                 x.notEmpty msg field input
 
-        type DefaultListValidator<'a when 'a : equality>(x : ListValidator<'a>) =
-            inherit DefaultEqualityValidator<'a list>(x)
-
-            /// Validate string is between length (inclusive) with the default
-            /// error message
-            member _.betweenLen (min : int) (max : int) (field : string) (input : 'a list) =
-                let msg field =
-                    sprintf
-                        "'%s' must be between %i and %i items in length"
-                        field min max
-                x.betweenLen min max msg field input
-
-            /// Validate string is null or "" with the default error message
-            member _.empty (field : string) (input : 'a list) =
-                let msg field = sprintf "'%s' must be empty" field
-                x.empty msg field input
-
-            /// Validate string length is greater than provided value with the
-            /// default error message
-            member _.equalsLen (len : int) (field : string) (input : 'a list) =
-                let msg field = sprintf "'%s' must be %i items in length" field len
-                x.equalsLen len msg field input
-
-            /// Validate string length is greater than provided value with the
-            /// default error message
-            member _.exists (predicate : 'a -> bool) (field : string) (input : 'a list) =
-                let msg field = sprintf "'%s' must contain the specified item" field
-                x.exists predicate msg field input
-
-            /// Validate string length is greater than provided value with the
-            /// default error message
-            member _.greaterThanLen (min : int) (field : string) (input : 'a list) =
-                let msg field =
-                    sprintf "'%s' must not execeed %i items in length" field min
-                x.greaterThanLen min msg field input
-
-            /// Validate string length is less than provided value with the
-            /// default error message
-            member _.lessThanLen (max : int) (field : string) (input : 'a list) =
-                let msg field =
-                    sprintf "'%s' must be at least %i items in length" field max
-                x.lessThanLen max msg field input
-
-            /// Validate string is not null or "" with the default error message
-            member _.notEmpty (field : string) (input : 'a list) =
-                let msg field = sprintf "'%s' must not be empty" field
-                x.notEmpty msg field input
-
-        type DefaultSequenceValidator<'a when 'a : equality>(x : SequenceValidator<'a>) =
+        type DefaultSequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>(x : SequenceValidator<'a, 'b>) =
             inherit DefaultEqualityValidator<'a seq>(x)
 
             /// Validate sequence is between length (inclusive) with the default
             /// error message
-            member _.betweenLen (min : int) (max : int) (field : string) (input : 'a seq) =
+            member _.betweenLen (min : int) (max : int) (field : string) (input : 'b) =
                 let msg field =
                     sprintf
                         "'%s' must be between %i and %i items in length"
@@ -532,37 +415,37 @@ module Validators =
                 x.betweenLen min max msg field input
 
             /// Validate sequence is empty with the default error message
-            member _.empty (field : string) (input : 'a seq) =
+            member _.empty (field : string) (input : 'b) =
                 let msg field = sprintf "'%s' must be empty" field
                 x.empty msg field input
 
             /// Validate sequence length is greater than provided value with the
             /// default error message
-            member _.equalsLen (len : int) (field : string) (input : 'a seq) =
+            member _.equalsLen (len : int) (field : string) (input : 'b) =
                 let msg field = sprintf "'%s' must be %i items in length" field len
                 x.equalsLen len msg field input
 
             /// Validate sequence length is greater than provided value with the
             /// default error message
-            member _.exists (predicate : 'a -> bool) (field : string) (input : 'a seq) =
+            member _.exists (predicate : 'a -> bool) (field : string) (input : 'b) =
                 let msg field = sprintf "'%s' must contain the specified item" field
                 x.exists predicate msg field input
 
             /// Validate sequence length is greater than provided value with the
             /// default error message
-            member _.greaterThanLen (min : int) (field : string) (input : 'a seq) =
+            member _.greaterThanLen (min : int) (field : string) (input : 'b) =
                 let msg field =
                     sprintf "'%s' must not execeed %i items in length" field min
                 x.greaterThanLen min msg field input
 
             /// Validate sequence length is less than provided value with the
             /// default error message
-            member _.lessThanLen (max : int) (field : string) (input : 'a seq) =
+            member _.lessThanLen (max : int) (field : string) (input : 'b) =
                 let msg field =
                     sprintf "'%s' must be at least %i items in length" field max
                 x.lessThanLen max msg field input
 
             /// Validate sequence is not null or "" with the default error message
-            member _.notEmpty (field : string) (input : 'a seq) =
+            member _.notEmpty (field : string) (input : 'b) =
                 let msg field = sprintf "'%s' must not be empty" field
                 x.notEmpty msg field input

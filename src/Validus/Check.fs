@@ -59,11 +59,14 @@ module Check =
         /// System.TimeSpan validators
         let TimeSpan = ComparisonValidator<TimeSpan>()
 
+        /// Array validators
+        let Array<'a when 'a : equality> = SequenceValidator<'a, 'a array>()
+
         /// List validators
-        let List<'a when 'a : equality> = ListValidator<'a>()
+        let List<'a when 'a : equality> = SequenceValidator<'a, 'a list>()
 
         /// Sequence validators
-        let Seq<'a when 'a : equality> = SequenceValidator<'a>()
+        let Seq<'a when 'a : equality> = SequenceValidator<'a, 'a seq>()
 
     /// Execute validator if 'a is Some, otherwise return Ok 'a
     let optional
@@ -136,8 +139,11 @@ module Check =
     /// System.TimeSpan validators with the default error messages
     let TimeSpan = DefaultComparisonValidator<TimeSpan>(WithMessage.TimeSpan)
 
+    /// Array validators
+    let Array<'a when 'a : equality> = Validators.Default.DefaultSequenceValidator<'a, 'a array>(WithMessage.Array)
+
     /// List validators
-    let List<'a when 'a : equality> = Validators.Default.DefaultListValidator<'a>(WithMessage.List)
+    let List<'a when 'a : equality> = Validators.Default.DefaultSequenceValidator<'a, 'a list>(WithMessage.List)
 
     /// Sequence validators
-    let Seq<'a when 'a : equality> = Validators.Default.DefaultSequenceValidator<'a>(WithMessage.Seq)
+    let Seq<'a when 'a : equality> = Validators.Default.DefaultSequenceValidator<'a, 'a seq>(WithMessage.Seq)
