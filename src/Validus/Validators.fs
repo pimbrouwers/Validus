@@ -366,14 +366,14 @@ module Validators =
             /// default error message
             member _.greaterThanLen (min : int) (field : string) (input : string) =
                 let msg field =
-                    sprintf "'%s' must not execeed %i characters" field min
+                    sprintf "'%s' must be greater than %i characters" field min
                 x.greaterThanLen min msg field input
 
             /// Validate string length is less than provided value with the
             /// default error message
             member _.lessThanLen (max : int) (field : string) (input : string) =
                 let msg field =
-                    sprintf "'%s' must be at less than %i characters" field max
+                    sprintf "'%s' must be less than %i characters" field max
                 x.lessThanLen max msg field input
 
             /// Validate string is not null or "" with the default error message
@@ -410,7 +410,7 @@ module Validators =
             member _.betweenLen (min : int) (max : int) (field : string) (input : 'b) =
                 let msg field =
                     sprintf
-                        "'%s' must be between %i and %i items in length"
+                        "'%s' must be between %i and %i items"
                         field min max
                 x.betweenLen min max msg field input
 
@@ -422,7 +422,7 @@ module Validators =
             /// Validate sequence length is greater than provided value with the
             /// default error message
             member _.equalsLen (len : int) (field : string) (input : 'b) =
-                let msg field = sprintf "'%s' must be %i items in length" field len
+                let msg field = sprintf "'%s' must be %i items" field len
                 x.equalsLen len msg field input
 
             /// Validate sequence length is greater than provided value with the
@@ -435,14 +435,14 @@ module Validators =
             /// default error message
             member _.greaterThanLen (min : int) (field : string) (input : 'b) =
                 let msg field =
-                    sprintf "'%s' must not execeed %i items in length" field min
+                    sprintf "'%s' must be greater than %i items" field min
                 x.greaterThanLen min msg field input
 
             /// Validate sequence length is less than provided value with the
             /// default error message
             member _.lessThanLen (max : int) (field : string) (input : 'b) =
                 let msg field =
-                    sprintf "'%s' must be at least %i items in length" field max
+                    sprintf "'%s' must be less than %i items" field max
                 x.lessThanLen max msg field input
 
             /// Validate sequence is not null or "" with the default error message
