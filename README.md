@@ -20,6 +20,7 @@ A common example of receiving input from an untrusted source `PersonDto` (i.e., 
 
 ```f#
 open System
+open System.Net.Mail
 open Validus
 
 type PersonDto =
@@ -40,11 +41,20 @@ type Person =
       StartDate : DateTime }
 
 module Person =
-    let ofDto (dto : PersonDto) =
-        // Shared validator for first & last name
+    let ofDto (dto : PersonDto) =        
+        // A basic validator
         let nameValidator =
             Check.String.betweenLen 3 64
 
+        // A custom email validator, using the *built-in* functionality
+        // from System.Net.Mail
+        let emailValidator = 
+            let msg = sprintf "Please provide a valid %s"
+            let rule v = 
+                let success, MailAddress.TryCreate v
+                success            
+            Validator.create msg rule
+    
         // Composing multiple validators to form complex validation rules,
         // overriding default error message (Note: "Check.WithMessage.String" as
         // opposed to "Check.String")
@@ -166,23 +176,16 @@ Complex validator chains and waterfalls can be created by combining validators t
 open System.Net.Mail
 open Validus
 
-let msg = sprintf "Please provide a valid %s"
-
 let emailPatternValidator =
+    let msg = sprintf "The %s input is not formatted as expected"
     Check.WithMessage.String.pattern @"[^@]+@[^\.]+\..+" msg
 
 // A custom validator that uses System.Net.Mail to validate email
 let mailAddressValidator =
+    let msg = sprintf "The %s input is not a valid email address"
     let rule (x : string) =
-        if x = "" then false
-        else
-            try
-                let addr = MailAddress(x)
-                if addr.Address = x then true
-                else false
-            with
-            | :? FormatException -> false
-
+        let success, _ = MailAddress.TryCreate x
+        success        
     Validator.create msg rule
 
 let emailValidator =
