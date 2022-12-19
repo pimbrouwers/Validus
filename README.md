@@ -51,7 +51,7 @@ module Person =
         let emailValidator = 
             let msg = sprintf "Please provide a valid %s"
             let rule v = 
-                let success, MailAddress.TryCreate v
+                let success, _ = MailAddress.TryCreate v
                 success            
             Validator.create msg rule
     
