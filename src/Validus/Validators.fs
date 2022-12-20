@@ -25,8 +25,14 @@ module ValidationRule =
     let inline greaterThan<'a when 'a : comparison> (min : 'a) : ValidationRule<'a> =
         fun v -> v > min
 
+    let inline greaterThanOrEqualTo<'a when 'a : comparison> (min : 'a) : ValidationRule<'a> =
+        fun v -> v >= min
+
     let inline lessThan<'a when 'a : comparison> (max : 'a) : ValidationRule<'a> =
         fun v -> v < max
+
+    let inline lessThanOrEqualTo<'a when 'a : comparison> (max : 'a) : ValidationRule<'a> =
+        fun v -> v <= max
 
     let inline betweenLen (min : int) (max : int) (x : ^a) : bool =
         (between min max (^a : (member Length : int) x))
@@ -37,7 +43,13 @@ module ValidationRule =
     let inline greaterThanLen (min : int) (x : ^a) : bool =
         (greaterThan min (^a : (member Length : int) x))
 
+    let inline greaterThanOrEqualToLen (min : int) (x : ^a) : bool =
+        (greaterThanOrEqualTo min (^a : (member Length : int) x))
+
     let inline lessThanLen (max : int) (x : ^a) : bool =
+        (lessThan max (^a : (member Length : int) x))
+
+    let inline lessThanOrEqualToLen (max : int) (x : ^a) : bool =
         (lessThan max (^a : (member Length : int) x))
 
     let inline strPattern (pattern : string) : ValidationRule<string> =
@@ -117,6 +129,16 @@ module Validators =
             let rule = ValidationRule.greaterThan min
             Validator.create message rule field input
 
+        /// Value is greater than or equal to provided min
+        member _.greaterThanOrEqualTo
+            (min : 'a)
+            (message : ValidationMessage)
+            (field : string)
+            (input : 'a)
+            : ValidationResult<'a> =
+            let rule = ValidationRule.greaterThanOrEqualTo min
+            Validator.create message rule field input
+
         /// Value is less than provided max
         member _.lessThan
             (max : 'a)
@@ -125,6 +147,16 @@ module Validators =
             (input : 'a)
             : ValidationResult<'a> =
             let rule = ValidationRule.lessThan max
+            Validator.create message rule field input
+
+        /// Value is less than or equal to provided max
+        member _.lessThanOrEqualTo
+            (max : 'a)
+            (message : ValidationMessage)
+            (field : string)
+            (input : 'a)
+            : ValidationResult<'a> =
+            let rule = ValidationRule.lessThanOrEqualTo max
             Validator.create message rule field input
 
     type StringValidator() =
@@ -169,6 +201,16 @@ module Validators =
             let rule = ValidationRule.greaterThanLen min
             Validator.create message rule field input
 
+        /// Validate string length is greater than o requal to provided value
+        member _.greaterThanOrEqualToLen
+            (min : int)
+            (message : ValidationMessage)
+            (field : string)
+            (input : string)
+            : ValidationResult<string> =
+            let rule = ValidationRule.greaterThanOrEqualToLen min
+            Validator.create message rule field input
+
         /// Validate string length is less than provided value
         member _.lessThanLen
             (max : int)
@@ -177,6 +219,16 @@ module Validators =
             (input : string)
             : ValidationResult<string> =
             let rule = ValidationRule.lessThanLen max
+            Validator.create message rule field input
+
+        /// Validate string length is less than or equal to provided value
+        member _.lessThanOrEqualToLen
+            (max : int)
+            (message : ValidationMessage)
+            (field : string)
+            (input : string)
+            : ValidationResult<string> =
+            let rule = ValidationRule.lessThanOrEqualToLen max
             Validator.create message rule field input
 
         /// Validate string is not null or ""
@@ -280,6 +332,19 @@ module Validators =
 
             Validator.create message rule field input
 
+        /// Validate sequence length is greater than or equal to provided value
+        member _.greaterThanOrEqualToLen
+            (min : int)
+            (message : ValidationMessage)
+            (field : string)
+            (input : 'b)
+            : ValidationResult<'b> =
+            let rule input =
+                let length = Seq.length input
+                length >= min
+
+            Validator.create message rule field input
+
         /// Validate sequence length is less than provided value
         member _.lessThanLen
             (max : int)
@@ -290,6 +355,19 @@ module Validators =
             let rule input =
                 let length = Seq.length input
                 length < max
+
+            Validator.create message rule field input
+
+        /// Validate sequence length is less than or equal to provided value
+        member _.lessThanOrEqualToLen
+            (max : int)
+            (message : ValidationMessage)
+            (field : string)
+            (input : 'b)
+            : ValidationResult<'b> =
+            let rule input =
+                let length = Seq.length input
+                length <= max
 
             Validator.create message rule field input
 
@@ -333,10 +411,24 @@ module Validators =
                     sprintf "'%s' must be greater than %A" field min
                 x.greaterThan min msg field input
 
+            /// Value is greater than or equal to provided min with the default
+            /// error message
+            member _.greaterThanOrEqualTo (min : 'a) (field : string) (input : 'a) =
+                let msg field =
+                    sprintf "'%s' must be greater than or equal to %A" field min
+                x.greaterThan min msg field input
+
             /// Value is less than provided max with the default error message
             member _.lessThan (max : 'a) (field : string) (input : 'a) =
                 let msg field =
                     sprintf "'%s' must be less than %A" field max
+                x.lessThan max msg field input
+
+            /// Value is less than or equal to provided max with the default
+            /// error message
+            member _.lessThanOrEqualTo (max : 'a) (field : string) (input : 'a) =
+                let msg field =
+                    sprintf "'%s' must be less than or equal to %A" field max
                 x.lessThan max msg field input
 
         type DefaultStringValidator(x : StringValidator) =
@@ -356,7 +448,7 @@ module Validators =
                 let msg field = sprintf "'%s' must be empty" field
                 x.empty msg field input
 
-            /// Validate string length is greater than provided value with the
+            /// Validate string length is equals to provided value with the
             /// default error message
             member _.equalsLen (len : int) (field : string) (input : string) =
                 let msg field = sprintf "'%s' must be %i characters" field len
@@ -369,11 +461,25 @@ module Validators =
                     sprintf "'%s' must be greater than %i characters" field min
                 x.greaterThanLen min msg field input
 
+            /// Validate string length is greater than or equal to provided
+            /// value with the default error message
+            member _.greaterThanOrEqualToLen (min : int) (field : string) (input : string) =
+                let msg field =
+                    sprintf "'%s' must be greater than or equal to %i characters" field min
+                x.greaterThanLen min msg field input
+
             /// Validate string length is less than provided value with the
             /// default error message
             member _.lessThanLen (max : int) (field : string) (input : string) =
                 let msg field =
                     sprintf "'%s' must be less than %i characters" field max
+                x.lessThanLen max msg field input
+
+            /// Validate string length is less than or equal to provided value
+            /// with the default error message
+            member _.lessThanOrEqualToLen (max : int) (field : string) (input : string) =
+                let msg field =
+                    sprintf "'%s' must be less than or equal to %i characters" field max
                 x.lessThanLen max msg field input
 
             /// Validate string is not null or "" with the default error message
@@ -419,13 +525,13 @@ module Validators =
                 let msg field = sprintf "'%s' must be empty" field
                 x.empty msg field input
 
-            /// Validate sequence length is greater than provided value with the
+            /// Validate sequence length is equal to than provided value with the
             /// default error message
             member _.equalsLen (len : int) (field : string) (input : 'b) =
                 let msg field = sprintf "'%s' must be %i items" field len
                 x.equalsLen len msg field input
 
-            /// Validate sequence length is greater than provided value with the
+            /// Validate sequence contains the provided value with the
             /// default error message
             member _.exists (predicate : 'a -> bool) (field : string) (input : 'b) =
                 let msg field = sprintf "'%s' must contain the specified item" field
@@ -435,7 +541,14 @@ module Validators =
             /// default error message
             member _.greaterThanLen (min : int) (field : string) (input : 'b) =
                 let msg field =
-                    sprintf "'%s' must be greater than %i items" field min
+                    sprintf "'%s' length must be greater than %i items" field min
+                x.greaterThanLen min msg field input
+
+            /// Validate sequence length is greater than or equal to provided
+            /// value with the default error message
+            member _.greaterThanOrEqualToLen (min : int) (field : string) (input : 'b) =
+                let msg field =
+                    sprintf "'%s' length must be greater than or equal to %i items" field min
                 x.greaterThanLen min msg field input
 
             /// Validate sequence length is less than provided value with the
@@ -443,6 +556,13 @@ module Validators =
             member _.lessThanLen (max : int) (field : string) (input : 'b) =
                 let msg field =
                     sprintf "'%s' must be less than %i items" field max
+                x.lessThanLen max msg field input
+
+            /// Validate sequence length is less than or equal to provided value
+            /// with the default error message
+            member _.lessThanOrEqualToLen (max : int) (field : string) (input : 'b) =
+                let msg field =
+                    sprintf "'%s' length must be less than or equal to %i items" field max
                 x.lessThanLen max msg field input
 
             /// Validate sequence is not null or "" with the default error message
