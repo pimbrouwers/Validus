@@ -366,14 +366,14 @@ Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSp
 open Validus
 
 // Define a validator which checks if an int is greater than
-// 100 displaying the standard error message.
+// or equal to 100 displaying the standard error message.
 let greaterThanOrEqualTo100 =
   Check.Int.greaterThanOrEqualTo 100 "fieldName"
 
 greaterThanOrEqualTo100 12 // Result<int, ValidationErrors>
 
 // Define a validator which checks if an int is greater than
-// 100 displaying a custom error message.
+// or equal to 100 displaying a custom error message.
 let greaterThanOrEqualTo100Custom =
   let msg = sprintf "%s must be greater than or equal to 100"
   Check.WithMessage.Int.greaterThanOrEqualTo 100 msg "fieldName"
@@ -412,14 +412,14 @@ Applies to: `int16, int, int64, decimal, float, DateTime, DateTimeOffset, TimeSp
 open Validus
 
 // Define a validator which checks if an int is less than
-// 100 displaying the standard error message.
+// or equal to 100 displaying the standard error message.
 let lessThanOrEqualTo100 =
   Check.Int.lessThanOrEqualTo 100 "fieldName"
 
 lessThanOrEqualTo100 12 // Result<int, ValidationErrors>
 
 // Define a validator which checks if an int is less than
-// 100 displaying a custom error message.
+// or equal to 100 displaying a custom error message.
 let lessThanOrEqualTo100Custom =
   let msg = sprintf "%s must be less than or equal to 100"
   Check.WithMessage.Int.lessThanOrEqualTo 100 msg "fieldName"
@@ -504,14 +504,14 @@ Applies to: `string, 'a array, 'a list, 'a seq`
 open Validus
 
 // Define a validator which checks if a string is greater than
-// 100 chars displaying the standard error message.
+// or equal to 100 chars displaying the standard error message.
 let greaterThanOrEqualTo100Chars =
   Check.String.greaterThanOrEqualToLen 100 "fieldName"
 
 greaterThanOrEqualTo100Chars "validus"
 
 // Define a validator which checks if a string is greater than
-// 100 chars displaying a custom error message.
+// or equal to 100 chars displaying a custom error message.
 let greaterThanOrEqualTo100CharsCustom =
   let msg = sprintf "%s must be greater than or equal to 100 chars"
   Check.WithMessage.String.greaterThanOrEqualToLen 100 msg "fieldName"
@@ -550,14 +550,14 @@ Applies to: `string, 'a array, 'a list, 'a seq`
 open Validus
 
 // Define a validator which checks if a string is less tha
-// 100 chars displaying the standard error message.
+// or equal to 100 chars displaying the standard error message.
 let lessThanOrEqualTo100Chars =
   Check.String.lessThanOrEqualToLen 100 "fieldName"
 
 lessThanOrEqualTo100Chars "validus"
 
 // Define a validator which checks if a string is less tha
-// 100 chars displaying a custom error message.
+// or equal to 100 chars displaying a custom error message.
 let lessThanOrEqualTo100CharsCustom =
   let msg = sprintf "%s must be less than 100 chars"
   Check.WithMessage.String.lessThanOrEqualToLen 100 msg "fieldName"
