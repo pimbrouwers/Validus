@@ -541,7 +541,7 @@ module Validators =
             /// default error message
             member _.greaterThanLen (min : int) (field : string) (input : 'b) =
                 let msg field =
-                    sprintf "'%s' length must be greater than %i items" field min
+                    sprintf "'%s' must be greater than %i items" field min
                 x.greaterThanLen min msg field input
 
             /// Validate sequence length is greater than or equal to provided
