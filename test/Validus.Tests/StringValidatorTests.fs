@@ -50,6 +50,18 @@ let ``(TestValidator.greaterThanLen min) should produce Failure`` () =
     | Error _ -> true
 
 [<Property>]
+let ``(TestValidator.greaterThanOrEqualToLen min) should produce Success`` () =
+    match TestValidator.greaterThanOrEqualToLen 0 "Test" testString with
+    | Ok _ -> true
+    | Error _ -> false
+
+[<Property>]
+let ``(TestValidator.greaterThanOrEqualToLen min) should produce Failure`` () =
+    match TestValidator.greaterThanOrEqualToLen 100 "Test" testString with
+    | Ok _ -> false
+    | Error _ -> true
+
+[<Property>]
 let ``(TestValidator.lessThanLen min) should produce Success`` () =
     match TestValidator.lessThanLen 100 "Test" testString with
     | Ok _ -> true
@@ -58,6 +70,18 @@ let ``(TestValidator.lessThanLen min) should produce Success`` () =
 [<Property>]
 let ``(TestValidator.lessThanLen min) should produce Failure`` () =
     match TestValidator.lessThanLen 0 "Test" testString with
+    | Ok _ -> false
+    | Error _ -> true
+
+[<Property>]
+let ``(TestValidator.lessThanOrEqualToLen min) should produce Success`` () =
+    match TestValidator.lessThanOrEqualToLen 100 "Test" testString with
+    | Ok _ -> true
+    | Error _ -> false
+
+[<Property>]
+let ``(TestValidator.lessThanOrEqualToLen min) should produce Failure`` () =
+    match TestValidator.lessThanOrEqualToLen 0 "Test" testString with
     | Ok _ -> false
     | Error _ -> true
 
