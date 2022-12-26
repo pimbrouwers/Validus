@@ -1,8 +1,12 @@
 ﻿module Validus.Validator.Tests
 
+open System
+
 open Xunit
 open FsUnit.Xunit
+
 open Validus
+open Validus.Tests
 
 type FakeValidationRecord =
     { Name : string; Age : int }
@@ -257,3 +261,36 @@ let ``ValidatorGroup works with both And() and Then()`` () =
         rMap.["Login"].Length |> should equal 1
         rMap.["Login"] |> should equal ["Login must not equal fake@test.com"] )
     |> ignore
+
+[<Fact>]
+let ``Validators.Default use correct built-in messages`` () =
+    Check.Int.equals -1 "equals" 1 |> Result.containsErrorValue (ValidationMessages.equals "equals" -1) |> ignore
+    Check.Int.notEquals -1 "notEquals" -1 |> Result.containsErrorValue (ValidationMessages.notEquals "notEquals" -1) |> ignore
+    Check.Int.between -1 0 "between" 1 |> Result.containsErrorValue (ValidationMessages.between "between" -1 0) |> ignore
+    Check.Int.greaterThan -1 "greaterThan" -2 |> Result.containsErrorValue (ValidationMessages.greaterThan "greaterThan" -1) |> ignore
+    Check.Int.greaterThanOrEqualTo -1 "greaterThanOrEqualTo" -2 |> Result.containsErrorValue (ValidationMessages.greaterThanOrEqualTo "greaterThanOrEqualTo" -1) |> ignore
+    Check.Int.lessThan -1 "lessThan" 1 |> Result.containsErrorValue (ValidationMessages.lessThan "lessThan" -1) |> ignore
+    Check.Int.lessThanOrEqualTo -1 "lessThanOrEqualTo" 1 |> Result.containsErrorValue (ValidationMessages.lessThanOrEqualTo "lessThanOrEqualTo" -1) |> ignore
+
+    Check.String.betweenLen 0 1 "betweenLen" "betweenLen" |> Result.containsErrorValue (ValidationMessages.strBetweenLen "betweenLen" 0 1) |> ignore
+    Check.String.empty "empty" "empty" |> Result.containsErrorValue (ValidationMessages.strEmpty "empty") |> ignore
+    Check.String.equalsLen 0 "equalsLen" "equalsLen" |> Result.containsErrorValue (ValidationMessages.strEqualsLen "equalsLen" 0) |> ignore
+    Check.String.greaterThanLen 99 "greaterThanLen" "greaterThanLen" |> Result.containsErrorValue (ValidationMessages.strGreaterThanLen "greaterThanLen" 99) |> ignore
+    Check.String.greaterThanOrEqualToLen 99 "greaterThanOrEqualToLen" "greaterThanOrEqualToLen" |> Result.containsErrorValue (ValidationMessages.strGreaterThanOrEqualToLen "greaterThanOrEqualToLen" 99) |> ignore
+    Check.String.lessThanLen 0 "lessThanLen" "lessThanLen" |> Result.containsErrorValue (ValidationMessages.strLessThanLen "lessThanLen" 0) |> ignore
+    Check.String.lessThanOrEqualToLen 0 "lessThanOrEqualToLen" "lessThanOrEqualToLen" |> Result.containsErrorValue (ValidationMessages.strLessThanOrEqualToLen "lessThanOrEqualToLen" 0) |> ignore
+    Check.String.notEmpty "notEmpty" "" |> Result.containsErrorValue (ValidationMessages.strNotEmpty "notEmpty") |> ignore
+    Check.String.pattern "@[0-9]+" "pattern" "pattern" |> Result.containsErrorValue (ValidationMessages.strPattern "pattern" @"[0-9]+") |> ignore
+
+    Check.Guid.empty "empty" (Guid.NewGuid ()) |> Result.containsErrorValue (ValidationMessages.guidEmpty "empty") |> ignore
+    Check.Guid.notEmpty "notEmpty" Guid.Empty |> Result.containsErrorValue (ValidationMessages.guidNotEmpty "notEmpty") |> ignore
+
+    Check.Seq.betweenLen 99 100 "betweenLen" [] |> Result.containsErrorValue (ValidationMessages.seqBetweenLen "betweenLen" 99 100) |> ignore
+    Check.Seq.empty "empty" [1] |> Result.containsErrorValue (ValidationMessages.seqEmpty "empty") |> ignore
+    Check.Seq.equalsLen 99 "equalsLen" [] |> Result.containsErrorValue (ValidationMessages.seqEqualsLen "equalsLen" 9) |> ignore
+    Check.Seq.exists (fun (n : int) -> n = 2) "exists" [1] |> Result.containsErrorValue (ValidationMessages.seqExists "exists") |> ignore
+    Check.Seq.greaterThanLen 99 "greaterThanLen" [] |> Result.containsErrorValue (ValidationMessages.seqGreaterThanLen "greaterThanLen" 99) |> ignore
+    Check.Seq.greaterThanOrEqualToLen 99 "greaterThanOrEqualToLen" [] |> Result.containsErrorValue (ValidationMessages.seqGreaterThanOrEqualToLen "greaterThanOrEqualToLen" 99) |> ignore
+    Check.Seq.lessThanLen -1 "lessThanLen" [] |> Result.containsErrorValue (ValidationMessages.seqLessThanLen "lessThanLen" -1) |> ignore
+    Check.Seq.lessThanOrEqualToLen -1 "lessThanOrEqualToLen" [] |> Result.containsErrorValue (ValidationMessages.seqLessThanOrEqualToLen "lessThanOrEqualToLen" -1) |> ignore
+    Check.Seq.notEmpty "notEmpty" [1] |> Result.containsErrorValue (ValidationMessages.seqNotEmpty "notEmpty") |> ignore

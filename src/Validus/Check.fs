@@ -3,8 +3,8 @@ namespace Validus
 [<RequireQualifiedAccess>]
 module Check =
     open System
-    open Validators
-    open Validators.Default
+    open Validus.Validators
+    open Validus.Validators.Default
 
     module WithMessage =
         /// Execute validator if 'a is Some, otherwise return Failure
@@ -107,7 +107,6 @@ module Check =
         : ValidationResult<'b> =
         let msg field = sprintf "'%s' is required" field
         WithMessage.vrequired validator msg field value
-
 
     /// DateTime validators with the default error messages
     let DateTime = DefaultComparisonValidator<DateTime>(WithMessage.DateTime)

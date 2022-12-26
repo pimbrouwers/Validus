@@ -42,8 +42,8 @@
   <ItemGroup>
     <Compile Include="Core.fs" />
     <Compile Include="Validators.fs" />
+    <Compile Include="Validators.Default.fs" />
     <Compile Include="Check.fs" />
-    <Compile Include="ValidationResultBuilder.fs" />
     <Compile Include="Operators.fs" />
   </ItemGroup>
 

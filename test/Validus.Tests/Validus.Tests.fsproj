@@ -5,6 +5,7 @@
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Common.fs" />
     <Compile Include="ValidationErrorsTests.fs" />
     <Compile Include="ValidatorTests.fs" />
     <Compile Include="GuidValidatorTests.fs" />

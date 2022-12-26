@@ -1,31 +1,18 @@
 module Validus.Operators.Tests
 
 open System
+open System.Globalization
+
 open Xunit
-open FsCheck.Xunit
-open FsUnit.Xunit
+
 open Validus
 open Validus.Operators
-open System.Globalization
+open Validus.Tests
 
 type AgeGroup =
     | Adult of int
     | Child
     | Senior
-
-module Result =
-    let isOkValue x =
-        function
-        | Ok y -> y = x
-        | Error _ -> false
-
-    let containsErrorValue x =
-        function
-        | Ok _ -> false
-        | Error e -> e |> ValidationErrors.toList |> List.contains x
-
-    let vError x y =
-        Error <| ValidationErrors.create x [y]
 
 module Int =
     /// Minimalistic TryParse function for testing with bind
