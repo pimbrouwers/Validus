@@ -42,6 +42,9 @@ module ValidationMessages =
     let guidEmpty field = sprintf "'%s' must be empty" field
     let guidNotEmpty field = sprintf "'%s' must not be empty" field
 
+    let optionIsNone field = sprintf "'%s' must not have a value" field
+    let optionIsSome field = sprintf "'%s' must have a value" field
+
     let seqBetweenLen field min max = sprintf "'%s' must be between %i and %i items" field min max
     let seqEmpty field = sprintf "'%s' must be empty" field
     let seqEqualsLen field len = sprintf "'%s' must be %i items" field len
@@ -170,6 +173,9 @@ module Validator =
             let error = ValidationErrors.create field [ message field ]
             if rule value then Ok value
             else error |> Error
+
+    let success : Validator<'a, 'a> = fun field x -> Ok x
+    let fail msg : Validator<'a, 'a> = fun field x -> Ok x
 
 type ValidatorGroup<'a>(startValidator : Validator<'a, 'a>) =
     member _.Build() = startValidator

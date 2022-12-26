@@ -10,24 +10,24 @@ module Check =
         /// Execute validator if 'a is Some, otherwise return Failure
         let required
             (validator : Validator<'a, 'b>)
-            (message : ValidationMessage)
+            (msg : ValidationMessage)
             (field : string)
             (input : 'a option)
             : ValidationResult<'b> =
             match input with
             | Some x -> validator field x
-            | None   -> Error (ValidationErrors.create field [ message field ])
+            | None   -> Error (ValidationErrors.create field [ msg field ])
 
         /// Execute validator if 'a is Some, otherwise return Failure
         let vrequired
             (validator : Validator<'a, 'b>)
-            (message : ValidationMessage)
+            (msg : ValidationMessage)
             (field : string)
             (value : 'a voption)
             : ValidationResult<'b> =
             match value with
             | ValueSome v -> validator field v
-            | ValueNone   -> Error (ValidationErrors.create field [ message field ])
+            | ValueNone   -> Error (ValidationErrors.create field [ msg field ])
 
         /// DateTime validators
         let DateTime = ComparisonValidator<DateTime>()
@@ -53,6 +53,9 @@ module Check =
         /// int64 validators
         let Int64 = ComparisonValidator<int64>()
 
+        /// 'a option validators
+        let Option = OptionValidator()
+
         /// string validators
         let String = StringValidator()
 
@@ -67,6 +70,9 @@ module Check =
 
         /// Sequence validators
         let Seq<'a when 'a : equality> = SequenceValidator<'a, 'a seq>()
+
+        /// 'a voption validators
+        let VOption = ValueOptionValidator()
 
     /// Execute validator if 'a is Some, otherwise return Ok 'a
     let optional
@@ -89,7 +95,7 @@ module Check =
         | ValueNone   -> Ok ValueNone
 
     /// Execute validator if 'a is Some, otherwise return Failure with the
-    /// default error message
+    /// default error msg
     let required
         (validator : Validator<'a, 'b>)
         (field : string)
@@ -99,7 +105,7 @@ module Check =
         WithMessage.required validator msg field value
 
     /// Execute validator if 'a is Some, otherwise return Failure with the
-    /// default error message
+    /// default error msg
     let vrequired
         (validator : Validator<'a, 'b>)
         (field : string)
@@ -120,7 +126,7 @@ module Check =
     /// float validators with the default error messages
     let Float = DefaultComparisonValidator<float>(WithMessage.Float)
 
-    /// System.Guid validators with the default error message
+    /// System.Guid validators with the default error msg
     let Guid = DefaultGuidValidator(WithMessage.Guid)
 
     /// int32 validators with the default error messages
@@ -131,6 +137,9 @@ module Check =
 
     /// int64 validators with the default error messages
     let Int64 = DefaultComparisonValidator<int64>(WithMessage.Int64)
+
+    /// option validators with default error messages
+    let Option = DefaultOptionValidator(WithMessage.Option)
 
     /// string validators with the default error messages
     let String = DefaultStringValidator(WithMessage.String)
@@ -146,3 +155,6 @@ module Check =
 
     /// Sequence validators
     let Seq<'a when 'a : equality> = Validators.Default.DefaultSequenceValidator<'a, 'a seq>(WithMessage.Seq)
+
+    /// voption validators with default error messages
+    let VOption = DefaultValueOptionValidator(WithMessage.VOption)

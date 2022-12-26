@@ -285,6 +285,12 @@ let ``Validators.Default use correct built-in messages`` () =
     Check.Guid.empty "empty" (Guid.NewGuid ()) |> Result.containsErrorValue (ValidationMessages.guidEmpty "empty") |> ignore
     Check.Guid.notEmpty "notEmpty" Guid.Empty |> Result.containsErrorValue (ValidationMessages.guidNotEmpty "notEmpty") |> ignore
 
+    Check.Option.isNone "isNone" (Some ()) |> Result.containsErrorValue (ValidationMessages.guidEmpty "isNone") |> ignore
+    Check.Option.isSome "isSome" None |> Result.containsErrorValue (ValidationMessages.guidNotEmpty "isSome") |> ignore
+
+    Check.VOption.isNone "isNone" (ValueSome ()) |> Result.containsErrorValue (ValidationMessages.guidEmpty "isNone") |> ignore
+    Check.VOption.isSome "isSome" ValueNone |> Result.containsErrorValue (ValidationMessages.guidNotEmpty "isSome") |> ignore
+
     Check.Seq.betweenLen 99 100 "betweenLen" [] |> Result.containsErrorValue (ValidationMessages.seqBetweenLen "betweenLen" 99 100) |> ignore
     Check.Seq.empty "empty" [1] |> Result.containsErrorValue (ValidationMessages.seqEmpty "empty") |> ignore
     Check.Seq.equalsLen 99 "equalsLen" [] |> Result.containsErrorValue (ValidationMessages.seqEqualsLen "equalsLen" 9) |> ignore

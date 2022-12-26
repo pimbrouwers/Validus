@@ -121,6 +121,32 @@ type DefaultGuidValidator(x : GuidValidator) =
         let msg field = ValidationMessages.guidNotEmpty field
         x.notEmpty msg field input
 
+type DefaultOptionValidator(x : OptionValidator) =
+    /// Validate 'a option is None with default error
+    /// message
+    member _.isNone (field : string) (input : 'a option) =
+        let msg field = ValidationMessages.optionIsNone field
+        x.isNone msg field input
+
+    /// Validate 'a option is Some with default error
+    /// message
+    member _.isSome (field : string) (input : 'a option) =
+        let msg field = ValidationMessages.optionIsSome field
+        x.isSome msg field input
+
+type DefaultValueOptionValidator(x : ValueOptionValidator) =
+    /// Validate 'a voption is None with default error
+    /// message
+    member _.isNone (field : string) (input : 'a voption) =
+        let msg field = ValidationMessages.optionIsNone field
+        x.isNone msg field input
+
+    /// Validate 'a voption is Some with default error
+    /// message
+    member _.isSome (field : string) (input : 'a voption) =
+        let msg field = ValidationMessages.optionIsSome field
+        x.isSome msg field input
+
 type DefaultSequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>(x : SequenceValidator<'a, 'b>) =
     inherit DefaultEqualityValidator<'a seq>(x)
 

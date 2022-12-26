@@ -192,6 +192,40 @@ type GuidValidator() =
         : ValidationResult<Guid> =
         Validator.create message (fun guid -> Guid.Empty <> guid) field input
 
+type OptionValidator() =
+    /// Validate 'a option is None
+    member _.isNone
+        (message : ValidationMessage)
+        (field : string)
+        (input : 'a option)
+        : ValidationResult<'a option> =
+        Validator.create message  Option.isNone field input
+
+    /// Validate 'a option is Some
+    member _.isSome
+        (message : ValidationMessage)
+        (field : string)
+        (input : 'a option)
+        : ValidationResult<'a option> =
+        Validator.create message  Option.isSome field input
+
+type ValueOptionValidator() =
+    /// Validate 'a voption is None
+    member _.isNone
+        (message : ValidationMessage)
+        (field : string)
+        (input : 'a voption)
+        : ValidationResult<'a voption> =
+        Validator.create message  (function ValueNone -> true | ValueSome _ -> false) field input
+
+    /// Validate 'a voption is Some
+    member _.isSome
+        (message : ValidationMessage)
+        (field : string)
+        (input : 'a voption)
+        : ValidationResult<'a voption> =
+        Validator.create message  (function ValueSome _ -> true | ValueNone -> false) field input
+
 type SequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>() =
     inherit EqualityValidator<'a seq> ()
 
