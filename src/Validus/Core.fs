@@ -19,6 +19,42 @@ type ValidationResult<'a> = Result<'a, ValidationErrors>
 /// Given a field name and value, 'a, produces a ValidationResult<'a>
 type Validator<'a, 'b> = string -> 'a -> ValidationResult<'b>
 
+/// Validation messages
+module ValidationMessages =
+    let equals field equalTo = sprintf "'%s' must be equal to %A" field equalTo
+    let notEquals field notEqualTo = sprintf "'%s' must not equal %A" field notEqualTo
+    let between field min max = sprintf "'%s' must be between %A and %A" field min max
+    let greaterThan field min = sprintf "'%s' must be greater than %A" field min
+    let greaterThanOrEqualTo field min = sprintf "'%s' must be greater than or equal to %A" field min
+    let lessThan field max = sprintf "'%s' must be less than %A" field max
+    let lessThanOrEqualTo field max = sprintf "'%s' must be less than or equal to %A" field max
+
+    let strBetweenLen field min max = sprintf "'%s' must be between %i and %i characters" field min max
+    let strEmpty field = sprintf "'%s' must be empty" field
+    let strEqualsLen field len = sprintf "'%s' must be %i characters" field len
+    let strGreaterThanLen field min = sprintf "'%s' must be greater than %i characters" field min
+    let strGreaterThanOrEqualToLen field min = sprintf "'%s' must be greater than or equal to %i characters" field min
+    let strLessThanLen field max = sprintf "'%s' must be less than %i characters" field max
+    let strLessThanOrEqualToLen field max = sprintf "'%s' must be less than or equal to %i characters" field max
+    let strNotEmpty field = sprintf "'%s' must not be empty" field
+    let strPattern field pattern = sprintf "'%s' must match pattern %s" field pattern
+
+    let guidEmpty field = sprintf "'%s' must be empty" field
+    let guidNotEmpty field = sprintf "'%s' must not be empty" field
+
+    let optionIsNone field = sprintf "'%s' must not have a value" field
+    let optionIsSome field = sprintf "'%s' must have a value" field
+
+    let seqBetweenLen field min max = sprintf "'%s' must be between %i and %i items" field min max
+    let seqEmpty field = sprintf "'%s' must be empty" field
+    let seqEqualsLen field len = sprintf "'%s' must be %i items" field len
+    let seqExists field = sprintf "'%s' must contain the specified item" field
+    let seqGreaterThanLen field min = sprintf "'%s' must be greater than %i items" field min
+    let seqGreaterThanOrEqualToLen field min = sprintf "'%s' must be greater than or equal to %i items" field min
+    let seqLessThanLen field max = sprintf "'%s' must be less than %i items" field max
+    let seqLessThanOrEqualToLen field max = sprintf "'%s' must be less than or equal to %i items" field max
+    let seqNotEmpty field = sprintf "'%s' must not be empty" field
+
 /// Validation rules
 module ValidationRule =
     let inline equality<'a when 'a : equality> (equalTo : 'a) : ValidationRule<'a> =
