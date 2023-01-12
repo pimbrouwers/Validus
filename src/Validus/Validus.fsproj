@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>Validus</AssemblyName>
-    <Version>4.1.1</Version>
+    <Version>4.1.2</Version>
 
     <!-- General info -->
     <Description>Functional input validation for F#.</Description>

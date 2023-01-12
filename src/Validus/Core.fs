@@ -164,13 +164,19 @@ module ValidationResult =
 
     /// Apply a function to the result Error value which has been converted to
     /// a Map<string, string list>
-    let mapError (resultFn : Map<string, string list> -> 'b) (result : ValidationResult<'a>) =
-        Result.mapError (ValidationErrors.toMap >> resultFn)
+    let mapError
+        (resultFn : Map<string, string list> -> 'b)
+        (result : ValidationResult<'a>)
+        : Result<'a, 'b> =
+        Result.mapError (ValidationErrors.toMap >> resultFn) result
 
     /// Apply a function to the result Error value which has been converted to
     /// a string list
-    let mapErrorList (resultFn : string list -> 'b) (result : ValidationResult<'a>) =
-        Result.mapError (ValidationErrors.toList >> resultFn)
+    let mapErrorList
+        (resultFn : string list -> 'b)
+        (result : ValidationResult<'a>)
+        : Result<'a, 'b> =
+        Result.mapError (ValidationErrors.toList >> resultFn) result
 
 /// Functions for Validator type
 module Validator =
