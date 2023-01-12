@@ -183,8 +183,7 @@ let ``Validation of record fails`` () =
         }
 
     result
-    |> Result.mapError (fun r ->
-        let rMap = ValidationErrors.toMap r
+    |> ValidationResult.mapError (fun rMap ->
         (rMap.ContainsKey "Name", rMap.ContainsKey "Age") |> should equal (true, true)
         rMap.["Age"] |> should equal ["Age must be greater than 3"])
 
@@ -205,8 +204,7 @@ let ``Validation of record fails with computation expression`` () =
         }
 
     result
-    |> Result.mapError (fun r ->
-        let rMap = ValidationErrors.toMap r
+    |> ValidationResult.mapError (fun rMap ->
         (rMap.ContainsKey "Name", rMap.ContainsKey "Age") |> should equal (true, true)
         rMap.["Age"] |> should equal ["Age must be greater than 3"])
 
@@ -235,8 +233,7 @@ let ``ValidatorGroup works with both And() and Then()`` () =
     // too short failure
     "fake"
     |> emailValidator "Login"
-    |> Result.mapError (fun r ->
-        let rMap = ValidationErrors.toMap r
+    |> ValidationResult.mapError (fun rMap ->
         rMap.ContainsKey "Login" |> should equal true
         rMap.["Login"] |> should equal [
             "'Login' must be between 8 and 512 characters"
@@ -246,8 +243,7 @@ let ``ValidatorGroup works with both And() and Then()`` () =
     // pattern failure
     "fake@test"
     |> emailValidator "Login"
-    |> Result.mapError (fun r ->
-        let rMap = ValidationErrors.toMap r
+    |> ValidationResult.mapError (fun rMap ->
         rMap.ContainsKey "Login" |> should equal true
         rMap.["Login"] |> should equal [ "Please provide a valid Login" ])
     |> ignore
@@ -255,8 +251,7 @@ let ``ValidatorGroup works with both And() and Then()`` () =
     // notEquals failure
     "fake@test.com"
     |> emailValidator "Login"
-    |> Result.mapError (fun r ->
-        let rMap = ValidationErrors.toMap r
+    |> ValidationResult.mapError (fun rMap ->
         rMap.ContainsKey "Login" |> should equal true
         rMap.["Login"].Length |> should equal 1
         rMap.["Login"] |> should equal ["Login must not equal fake@test.com"] )
