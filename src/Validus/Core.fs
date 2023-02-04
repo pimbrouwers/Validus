@@ -151,7 +151,7 @@ module ValidationResult =
         | Error e1, Error e2 -> Error (ValidationErrors.merge e1 e2)
 
     /// Create a tuple form ValidationResult, if two ValidationResult objects
-    /// are in Ok state, otherwise return failure
+    /// are in Ok state, otherwise return Error
     let zip
         (r1 : ValidationResult<'a>)
         (r2 : ValidationResult<'b>)

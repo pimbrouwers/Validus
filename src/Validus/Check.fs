@@ -46,7 +46,7 @@ module Check =
         /// 'a voption validators
         let VOption = ValueOptionValidator()
 
-        /// Execute validator if 'a is Some, otherwise return Failure
+        /// Execute validator if 'a is Some, otherwise return Error
         let required
             (validator : Validator<'a, 'b>)
             (msg : ValidationMessage)
@@ -57,7 +57,7 @@ module Check =
             | Some x -> validator field x
             | None   -> Error (ValidationErrors.create field [ msg field ])
 
-        /// Execute validator if 'a is Some, otherwise return Failure
+        /// Execute validator if 'a is Some, otherwise return Error
         let vrequired
             (validator : Validator<'a, 'b>)
             (msg : ValidationMessage)
@@ -139,7 +139,7 @@ module Check =
         | ValueSome v -> validator field v |> Result.map (fun v -> ValueSome v)
         | ValueNone   -> Ok ValueNone
 
-    /// Execute validator if 'a is Some, otherwise return Failure with the
+    /// Execute validator if 'a is Some, otherwise return Error with the
     /// default error msg
     let required
         (validator : Validator<'a, 'b>)
@@ -149,7 +149,7 @@ module Check =
         let msg field = sprintf "'%s' is required" field
         WithMessage.required validator msg field value
 
-    /// Execute validator if 'a is Some, otherwise return Failure with the
+    /// Execute validator if 'a is Some, otherwise return Error with the
     /// default error msg
     let vrequired
         (validator : Validator<'a, 'b>)

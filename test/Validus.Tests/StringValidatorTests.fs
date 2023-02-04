@@ -14,7 +14,7 @@ let ``(TestValidator.betweenLen min max) should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.betweenLen min max) should produce Failure`` () =
+let ``(TestValidator.betweenLen min max) should produce Error`` () =
     match TestValidator.betweenLen 100 1000 "Test" testString with
     | Ok _ -> false
     | Error _ -> true
@@ -26,7 +26,7 @@ let ``(TestValidator.empty) should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.empty) should produce Failure`` () =
+let ``(TestValidator.empty) should produce Error`` () =
     match TestValidator.empty "Test" testString with
     | Ok _ -> false
     | Error _ -> true
@@ -44,7 +44,7 @@ let ``(TestValidator.greaterThanLen min) should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.greaterThanLen min) should produce Failure`` () =
+let ``(TestValidator.greaterThanLen min) should produce Error`` () =
     match TestValidator.greaterThanLen 100 "Test" testString with
     | Ok _ -> false
     | Error _ -> true
@@ -56,7 +56,7 @@ let ``(TestValidator.greaterThanOrEqualToLen min) should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.greaterThanOrEqualToLen min) should produce Failure`` () =
+let ``(TestValidator.greaterThanOrEqualToLen min) should produce Error`` () =
     match TestValidator.greaterThanOrEqualToLen 100 "Test" testString with
     | Ok _ -> false
     | Error _ -> true
@@ -68,7 +68,7 @@ let ``(TestValidator.lessThanLen min) should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.lessThanLen min) should produce Failure`` () =
+let ``(TestValidator.lessThanLen min) should produce Error`` () =
     match TestValidator.lessThanLen 0 "Test" testString with
     | Ok _ -> false
     | Error _ -> true
@@ -80,7 +80,7 @@ let ``(TestValidator.lessThanOrEqualToLen min) should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.lessThanOrEqualToLen min) should produce Failure`` () =
+let ``(TestValidator.lessThanOrEqualToLen min) should produce Error`` () =
     match TestValidator.lessThanOrEqualToLen 0 "Test" testString with
     | Ok _ -> false
     | Error _ -> true
@@ -92,7 +92,7 @@ let ``(TestValidator.notEmpty) should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.notEmpty) should produce Failure`` () =
+let ``(TestValidator.notEmpty) should produce Error`` () =
     match TestValidator.notEmpty "Test" empty with
     | Ok _ -> false
     | Error _ -> true
@@ -104,7 +104,7 @@ let ``(TestValidator.pattern) [a-z] should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.pattern) [a-z] should produce Failure`` () =
+let ``(TestValidator.pattern) [a-z] should produce Error`` () =
     match TestValidator.pattern "[a-z]" "Test" "123456789" with
     | Ok _ -> false
     | Error _ -> true

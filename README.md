@@ -104,8 +104,8 @@ let dto : PersonDto =
       StartDate = Some (new DateTime(2058, 1, 1)) }
 
 match validatePersonDto dto with
-| Success p -> printfn "%A" p
-| Failure e ->
+| Ok p -> printfn "%A" p
+| Error e ->
     e
     |> ValidationErrors.toList
     |> Seq.iter (printfn "%s")

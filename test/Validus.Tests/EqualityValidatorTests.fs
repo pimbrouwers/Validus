@@ -13,7 +13,7 @@ let ``(TestValidator.equals n) should produce Success`` (NonZeroInt n) =
     | _ -> false
 
 [<Property>]
-let ``(TestValidator.equals n) should produce Failure`` (NonZeroInt n) =
+let ``(TestValidator.equals n) should produce Error`` (NonZeroInt n) =
     match TestValidator.equals n "Test" 0 with
     | Error _ -> true
     | _ -> false
@@ -25,7 +25,7 @@ let ``(TestValidator.notEquals n) should produce Success`` (NonZeroInt n) =
     | _ -> false
 
 [<Property>]
-let ``(TestValidator.notEquals n) should produce Failure`` (NonZeroInt n) =
+let ``(TestValidator.notEquals n) should produce Error`` (NonZeroInt n) =
     match TestValidator.notEquals n "Test" n with
     | Error _ -> true
     | _ -> false

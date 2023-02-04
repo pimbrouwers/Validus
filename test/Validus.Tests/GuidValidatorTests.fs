@@ -14,7 +14,7 @@ let ``(TestValidator.empty) should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.empty) should produce Failure`` () =
+let ``(TestValidator.empty) should produce Error`` () =
     match TestValidator.empty "Test" testGuid with
     | Ok _ -> false
     | Error _ -> true
@@ -26,7 +26,7 @@ let ``(TestValidator.notEmpty) should produce Success`` () =
     | Error _ -> false
 
 [<Property>]
-let ``(TestValidator.notEmpty) should produce Failure`` () =
+let ``(TestValidator.notEmpty) should produce Error`` () =
     match TestValidator.notEmpty "Test" Guid.Empty with
     | Ok _ -> false
     | Error _ -> true

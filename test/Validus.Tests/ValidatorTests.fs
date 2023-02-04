@@ -33,13 +33,13 @@ let ``String.empty should produce Success for null`` () =
     | Error _ -> false
 
 [<Fact>]
-let ``String.notEmpty should produce Failure for null`` () =
+let ``String.notEmpty should produce Error for null`` () =
     match Check.String.notEmpty "Test" null with
     | Ok _ -> false
     | Error _ -> true
 
 [<Fact>]
-let ``String.notEmpty composed should produce Failure for null`` () =
+let ``String.notEmpty composed should produce Error for null`` () =
     let notStartsWithWhiteSpace =
         let rule (x : string) = x <> "foo"
         let msg = sprintf "'%s' should not start with a space"
