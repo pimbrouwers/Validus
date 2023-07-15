@@ -178,6 +178,28 @@ module ValidationResult =
         : Result<'a, 'b> =
         Result.mapError (ValidationErrors.toList >> resultFn) result
 
+    /// Apply validation function to each item in the list
+    let traverse
+        (fn : 'a -> ValidationResult<'b>)
+        (lst : 'a list)
+        : ValidationResult<'b list> =
+        let folder item acc =
+            match fn item, acc with
+            | Ok i, Ok a -> Ok (i :: a)
+            | _, Error e
+            | Error e, _ -> Error e
+
+        let seed = Ok []
+
+        List.foldBack folder lst seed
+
+    /// Convert a ValidationResult<'a> seq to ValidationResult<'a seq>
+    let sequence
+        (lst : ValidationResult<'a> list)
+        : ValidationResult<'a list> =
+        traverse id lst
+
+
 /// Functions for Validator type
 module Validator =
     /// Create a new Validator

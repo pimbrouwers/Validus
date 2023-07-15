@@ -164,6 +164,21 @@ let ``Validation of record with voption succeeds`` () =
     |> Result.bind (fun r -> Ok (r |> should equal expected))
 
 [<Fact>]
+let ``Validation of list can be sequenced as ValidationResult list, if Ok or Error`` () =
+    let runTestData data =
+        [ for i in data do Check.String.greaterThanLen 2 i i ]
+        |> ValidationResult.sequence
+
+    [ "Joe"; "Bob"; "Larry" ]
+    |> runTestData
+    |> Result.bind (fun r -> Ok (Seq.length r |> should equal 3))
+    |> ignore
+
+    [ "A"; "B"; "C" ]
+    |> runTestData
+    |> Result.mapError (ValidationErrors.toList >> Seq.length >> should equal 3)
+
+[<Fact>]
 let ``Validation of record fails`` () =
     let name = "Jo"
     let age = 3
