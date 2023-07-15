@@ -186,8 +186,9 @@ module ValidationResult =
         let folder item acc =
             match fn item, acc with
             | Ok i, Ok a -> Ok (i :: a)
-            | _, Error e
-            | Error e, _ -> Error e
+            | Ok i, Error e -> Error e
+            | Error e, Ok _ -> Error e
+            | Error e, Error eAcc -> Error (ValidationErrors.merge eAcc e)
 
         let seed = Ok []
 
@@ -213,7 +214,7 @@ module Validator =
             else error |> Error
 
     let success : Validator<'a, 'a> = fun field x -> Ok x
-    let fail msg : Validator<'a, 'a> = fun field x -> Ok x
+    let fail msg : Validator<'a, 'a> = fun field x -> Error (ValidationErrors.create field [ msg field ])
 
 type ValidatorGroup<'a>(startValidator : Validator<'a, 'a>) =
     member _.Build() = startValidator

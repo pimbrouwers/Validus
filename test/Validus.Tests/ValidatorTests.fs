@@ -27,6 +27,25 @@ type FakeValidationRecordWithValueOption =
         { Name = name; Age = age }
 
 [<Fact>]
+let ``Validate.create produces a Validator<'a> when provided an instance of 'a`` () =
+    Validator.create (sprintf "rule %s") (fun (n : int) -> n = 1)
+    |> should be instanceOfType<Validator<int, int>>
+
+[<Fact>]
+let ``Validate.fail produces a Validator<'a> in a success state when provided any instance of 'a`` () =
+    let validator = Validator.create (sprintf "rule %s") (fun (n : int) -> n = 1)
+    validator "field" -1
+    |> Result.map (fun x ->
+        x |> should equal -1)
+
+[<Fact>]
+let ``Validate.fail produces a Validator<'a> in a failed state when provided any instance of 'a`` () =
+    let validator = Validator.create (sprintf "rule %s") (fun (n : int) -> n = 1)
+    validator "field" 1
+    |> Result.mapError (fun x ->
+        x |> should equal (ValidationErrors.create "field" ["rule field"]))
+
+[<Fact>]
 let ``String.empty should produce Success for null`` () =
     match Check.String.empty "Test" null with
     | Ok _ -> true
@@ -177,6 +196,11 @@ let ``Validation of list can be sequenced as ValidationResult list, if Ok or Err
     [ "A"; "B"; "C" ]
     |> runTestData
     |> Result.mapError (ValidationErrors.toList >> Seq.length >> should equal 3)
+    |> ignore
+
+    [ "Joe"; "B"; "C" ]
+    |> runTestData
+    |> Result.mapError (ValidationErrors.toList >> Seq.length >> should equal 2)
 
 [<Fact>]
 let ``Validation of record fails`` () =
