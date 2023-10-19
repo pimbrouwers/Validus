@@ -103,3 +103,15 @@ let ``(TestValidator.notEmpty) should produce Error`` () =
     match TestValidator.notEmpty "Test" empty with
     | Ok _ -> false
     | Error _ -> true
+
+[<Property>]
+let ``(TestValidator.forall) should produce Success`` () =
+    match TestValidator.forall (fun number -> number <= 10) "Test" testSequence with
+    | Ok _ -> true
+    | Error _ -> false
+
+[<Property>]
+let ``(TestValidator.forall) should produce Error`` () =
+    match TestValidator.forall (fun number -> number % 2 = 0) "Test" testSequence with
+    | Ok _ -> false
+    | Error _ -> true

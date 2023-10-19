@@ -273,6 +273,15 @@ type SequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>() =
         : ValidationResult<'b> =
         Validator.create message (Seq.exists predicate) field input
 
+    /// Validate all elements in a sequence satisfiy the predicate
+    member _.forAll
+        (predicate : 'a -> bool)
+        (message : ValidationMessage)
+        (field : string)
+        (input : 'b)
+        : ValidationResult<'b> =
+        Validator.create message (Seq.forall predicate) field input
+
     /// Validate sequence length is greater than provided value
     member _.greaterThanLen
         (min : int)
