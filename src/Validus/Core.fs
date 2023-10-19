@@ -209,9 +209,8 @@ module Validator =
         (rule : 'a -> bool)
         : Validator<'a, 'a> =
         fun (field : string) (value : 'a) ->
-            let error = ValidationErrors.create field [ message field ]
             if rule value then Ok value
-            else error |> Error
+            else [ message field ] |> ValidationErrors.create field |> Error
 
     let success : Validator<'a, 'a> = fun field x -> Ok x
     let fail msg : Validator<'a, 'a> = fun field x -> Error (ValidationErrors.create field [ msg field ])
