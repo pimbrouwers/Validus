@@ -175,8 +175,8 @@ type DefaultSequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>(x : Se
 
     /// Validate all elements in a sequence satisfiy the predicate
     member _.forall (predicate : 'a -> bool) (field: string) (input : 'b) =
-        let msg field = ValidationMessages.seqForAll field
-        x.forAll predicate msg field input
+        let msg field = ValidationMessages.seqForall field
+        x.forall predicate msg field input
 
     /// Validate sequence length is greater than provided value with the
     /// default error message

@@ -274,7 +274,7 @@ type SequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>() =
         Validator.create message (Seq.exists predicate) field input
 
     /// Validate all elements in a sequence satisfiy the predicate
-    member _.forAll
+    member _.forall
         (predicate : 'a -> bool)
         (message : ValidationMessage)
         (field : string)
