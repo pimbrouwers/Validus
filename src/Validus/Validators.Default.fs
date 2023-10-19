@@ -38,7 +38,7 @@ type DefaultComparisonValidator<'a when 'a
     /// error message
     member _.greaterThanOrEqualTo (min : 'a) (field : string) (input : 'a) =
         let msg field = ValidationMessages.greaterThanOrEqualTo field min
-        x.greaterThan min msg field input
+        x.greaterThanOrEqualTo min msg field input
 
     /// Value is less than provided max with the default error message
     member _.lessThan (max : 'a) (field : string) (input : 'a) =
@@ -49,7 +49,7 @@ type DefaultComparisonValidator<'a when 'a
     /// error message
     member _.lessThanOrEqualTo (max : 'a) (field : string) (input : 'a) =
         let msg field = ValidationMessages.lessThanOrEqualTo field max
-        x.lessThan max msg field input
+        x.lessThanOrEqualTo max msg field input
 
 type DefaultStringValidator(x : StringValidator) =
     inherit DefaultEqualityValidator<string>(x)
@@ -81,7 +81,7 @@ type DefaultStringValidator(x : StringValidator) =
     /// value with the default error message
     member _.greaterThanOrEqualToLen (min : int) (field : string) (input : string) =
         let msg field = ValidationMessages.strGreaterThanOrEqualToLen field min
-        x.greaterThanLen min msg field input
+        x.greaterThanOrEqualToLen min msg field input
 
     /// Validate string length is less than provided value with the
     /// default error message
@@ -93,7 +93,7 @@ type DefaultStringValidator(x : StringValidator) =
     /// with the default error message
     member _.lessThanOrEqualToLen (max : int) (field : string) (input : string) =
         let msg field = ValidationMessages.strLessThanOrEqualToLen field max
-        x.lessThanLen max msg field input
+        x.lessThanOrEqualToLen max msg field input
 
     /// Validate string is not null or "" with the default error message
     member _.notEmpty (field : string) (input : string) =
@@ -183,7 +183,7 @@ type DefaultSequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>(x : Se
     /// value with the default error message
     member _.greaterThanOrEqualToLen (min : int) (field : string) (input : 'b) =
         let msg field = ValidationMessages.seqGreaterThanOrEqualToLen field min
-        x.greaterThanLen min msg field input
+        x.greaterThanOrEqualToLen min msg field input
 
     /// Validate sequence length is less than provided value with the
     /// default error message
@@ -195,7 +195,7 @@ type DefaultSequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>(x : Se
     /// with the default error message
     member _.lessThanOrEqualToLen (max : int) (field : string) (input : 'b) =
         let msg field = ValidationMessages.seqLessThanOrEqualToLen field max
-        x.lessThanLen max msg field input
+        x.lessThanOrEqualToLen max msg field input
 
     /// Validate sequence is not null or "" with the default error message
     member _.notEmpty (field : string) (input : 'b) =
