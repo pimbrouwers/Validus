@@ -280,7 +280,7 @@ type SequenceValidator<'a, 'b when 'a : equality and 'b :> 'a seq>() =
         (field : string)
         (input : 'b)
         : ValidationResult<'b> =
-        Validator.create message (Seq.forAll predicate) field input
+        Validator.create message (Seq.forall predicate) field input
 
     /// Validate sequence length is greater than provided value
     member _.greaterThanLen
