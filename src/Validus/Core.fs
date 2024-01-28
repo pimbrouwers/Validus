@@ -49,6 +49,7 @@ module ValidationMessages =
     let seqEmpty field = sprintf "'%s' must be empty" field
     let seqEqualsLen field len = sprintf "'%s' must be %i items" field len
     let seqExists field = sprintf "'%s' must contain the specified item" field
+    let seqForAll field = sprintf "'%s' must only contain items that satisfy the predicate" field
     let seqGreaterThanLen field min = sprintf "'%s' must be greater than %i items" field min
     let seqGreaterThanOrEqualToLen field min = sprintf "'%s' must be greater than or equal to %i items" field min
     let seqLessThanLen field max = sprintf "'%s' must be less than %i items" field max
@@ -209,9 +210,8 @@ module Validator =
         (rule : 'a -> bool)
         : Validator<'a, 'a> =
         fun (field : string) (value : 'a) ->
-            let error = ValidationErrors.create field [ message field ]
             if rule value then Ok value
-            else error |> Error
+            else [ message field ] |> ValidationErrors.create field |> Error
 
     let success : Validator<'a, 'a> = fun field x -> Ok x
     let fail msg : Validator<'a, 'a> = fun field x -> Error (ValidationErrors.create field [ msg field ])
